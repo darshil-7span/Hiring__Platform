@@ -1,0 +1,277 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CurrencyName {
+  Indian
+  USA
+}
+
+enum CurrencyCode {
+  INR
+  USD
+}
+
+enum CurrencySymbol {
+  RUPEE  @map("₹")
+  DOLLAR @map("$")
+}
+
+enum EmploymentType {
+  fulltime
+  parttime
+  internship
+}
+
+enum JobType {
+  Remote
+  OnSite
+  Hybrid
+}
+
+enum JobStatus {
+  Active
+  Deactive
+}
+
+enum ApplicationStatus {
+  Applied
+  Shortlisted
+  Rejected
+  Hired
+}
+
+// =====================
+// MASTER / LOOKUP TABLES
+// =====================
+
+model Role {
+  id         Int      @id @default(autoincrement())
+  role_name  String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  users User[]
+
+  @@map("roles")
+}
+
+model Skill {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  job_skills       JobSkill[]
+  candidate_skills CandidateSkill[]
+
+  @@map("skills")
+}
+
+model Currency {
+  id         Int            @id @default(autoincrement())
+  name       CurrencyName
+  code       CurrencyCode
+  symbol     CurrencySymbol
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
+
+  job_posts JobPost[]
+
+  @@map("currencies")
+}
+
+model Country {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  iso_code   String?  @unique @db.VarChar(10)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  states State[]
+  users  User[]
+
+  @@map("countries")
+}
+
+model State {
+  id         Int      @id @default(autoincrement())
+  country_id Int
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  country            Country            @relation(fields: [country_id], references: [id])
+  cities             City[]
+  candidate_profiles CandidateProfile[]
+  recruiter_profiles RecruiterProfile[]
+  job_posts          JobPost[]
+
+  @@map("states")
+}
+
+model City {
+  id         Int      @id @default(autoincrement())
+  state_id   Int
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  state              State              @relation(fields: [state_id], references: [id])
+  candidate_profiles CandidateProfile[]
+  recruiter_profiles RecruiterProfile[]
+  job_posts          JobPost[]
+
+  @@map("cities")
+}
+
+// =====================
+// CORE USER TABLE
+// =====================
+
+model User {
+  id           BigInt   @id @default(autoincrement())
+  name         String?
+  email        String   @unique
+  password     String?
+  phone_number String?  @db.VarChar(15)
+  country_id   Int?
+  role_id      Int
+  is_active    Boolean? @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  role    Role     @relation(fields: [role_id], references: [id])
+  country Country? @relation(fields: [country_id], references: [id])
+
+  // Bi-directional relationships
+  candidate_profile CandidateProfile?
+  recruiter_profile RecruiterProfile?
+  job_posts         JobPost[]         @relation("RecruiterJobs")
+  applications      Application[]     @relation("CandidateApplications")
+  candidate_skills  CandidateSkill[]  @relation("CandidateSkills")
+
+  @@map("users")
+}
+
+// =====================
+// ROLE-SPECIFIC PROFILES
+// =====================
+
+model CandidateProfile {
+  user_id          BigInt   @id
+  state_id         Int?
+  city_id          Int?
+  qualification    String?
+  experience_years Int?
+  resume_url       String?  @db.Text
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  user  User   @relation(fields: [user_id], references: [id])
+  state State? @relation(fields: [state_id], references: [id])
+  city  City?  @relation(fields: [city_id], references: [id])
+
+  @@map("candidate_profile")
+}
+
+model RecruiterProfile {
+  user_id     BigInt   @id
+  designation String?
+  state_id    Int?
+  city_id     Int?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user  User   @relation(fields: [user_id], references: [id])
+  state State? @relation(fields: [state_id], references: [id])
+  city  City?  @relation(fields: [city_id], references: [id])
+
+  @@map("recruiter_profile")
+}
+
+// =====================
+// JOB DOMAIN
+// =====================
+
+model JobPost {
+  id                   BigInt          @id @default(autoincrement())
+  recruiter_id         BigInt?
+  job_title            String?
+  description          String?         @db.Text
+  employment_type      EmploymentType?
+  job_type             JobType?
+  salary_min           BigInt?
+  salary_max           BigInt?
+  currency_id          Int?
+  min_exp              BigInt?
+  max_exp              BigInt?
+  currency             String?         @default("INR") // Kept alongside currency_id as per your DBML
+  state_id             Int?
+  city_id              Int?
+  benefits             String?         @db.Text
+  openings_count       Int?
+  application_deadline DateTime?       @db.Date
+  job_status           JobStatus?
+  created_at           DateTime        @default(now())
+  updated_at           DateTime        @updatedAt
+
+  recruiter    User?         @relation("RecruiterJobs", fields: [recruiter_id], references: [id])
+  currency_rel Currency?     @relation(fields: [currency_id], references: [id])
+  state        State?        @relation(fields: [state_id], references: [id])
+  city         City?         @relation(fields: [city_id], references: [id])
+  job_skills   JobSkill[]
+  applications Application[]
+
+  @@map("job_post")
+}
+
+model JobSkill {
+  job_id   BigInt
+  skill_id Int
+
+  job   JobPost @relation(fields: [job_id], references: [id])
+  skill Skill   @relation(fields: [skill_id], references: [id])
+
+  @@id([job_id, skill_id]) // Replaces the unique index requirement for junction tables
+  @@map("job_skills")
+}
+
+// =====================
+// CANDIDATE SKILLS
+// =====================
+
+model CandidateSkill {
+  candidate_id BigInt
+  skill_id     Int
+
+  candidate User  @relation("CandidateSkills", fields: [candidate_id], references: [id])
+  skill     Skill @relation(fields: [skill_id], references: [id])
+
+  @@id([candidate_id, skill_id]) // Replaces the unique index requirement for junction tables
+  @@map("candidate_skills")
+}
+
+// =====================
+// APPLICATIONS
+// =====================
+
+model Application {
+  id           BigInt             @id @default(autoincrement())
+  job_id       BigInt?
+  candidate_id BigInt?
+  applied_at   DateTime?
+  status       ApplicationStatus?
+  created_at   DateTime           @default(now())
+  updated_at   DateTime           @updatedAt
+
+  job       JobPost? @relation(fields: [job_id], references: [id])
+  candidate User?    @relation("CandidateApplications", fields: [candidate_id], references: [id])
+
+  @@map("applications")
+}
