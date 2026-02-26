@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 
 import { env } from "./config/env";
+import routes from "./routes/index";
 
 // routes
 // import healthRoutes from "./routes/health.routes";
@@ -24,6 +25,9 @@ if (env.NODE_ENV === "development") {
    ROUTES
 ================================ */
 // app.use("/api/health", healthRoutes);
+
+// Main API routes
+app.use("/api", routes);
 
 app.use("/", (req, res, next) => {
   console.log("✅ Connected");
@@ -48,7 +52,7 @@ app.use(
     err: any,
     req: express.Request,
     res: express.Response,
-    next: express.NextFunction
+    next: express.NextFunction,
   ) => {
     console.error(err);
 
@@ -56,7 +60,7 @@ app.use(
       success: false,
       message: err.message || "Internal Server Error",
     });
-  }
+  },
 );
 
 export default app;

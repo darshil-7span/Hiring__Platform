@@ -5,6 +5,7 @@ node_modules
 # Prisma generated client
 generated/
 
+
 # Build output
 dist/
 build/
