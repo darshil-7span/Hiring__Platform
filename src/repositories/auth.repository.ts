@@ -55,6 +55,32 @@ export class AuthRepository {
   }
 
   /**
+   * Ensure candidate profile exists for a user
+   */
+  async upsertCandidateProfile(userId: bigint) {
+    return await prisma.candidateProfile.upsert({
+      where: { user_id: userId },
+      update: {},
+      create: {
+        user_id: userId,
+      },
+    });
+  }
+
+  /**
+   * Ensure recruiter profile exists for a user
+   */
+  async upsertRecruiterProfile(userId: bigint) {
+    return await prisma.recruiterProfile.upsert({
+      where: { user_id: userId },
+      update: {},
+      create: {
+        user_id: userId,
+      },
+    });
+  }
+
+  /**
    * Find role by name
    */
   async findRoleByName(roleName: string): Promise<Role | null> {

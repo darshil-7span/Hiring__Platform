@@ -61,6 +61,13 @@ export class AuthService {
       role_id: role.id,
     });
 
+    // Create appropriate profile based on role
+    if (role.role_name === "candidate") {
+      await authRepository.upsertCandidateProfile(user.id);
+    } else if (role.role_name === "recruiter") {
+      await authRepository.upsertRecruiterProfile(user.id);
+    }
+
     // Generate JWT token
     const token = generateToken({
       userId: Number(user.id),
