@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { JobController } from "../../controllers/recruiter/recruiterpost.controller";
 import { validate } from "../../middlewares/validate.middleware";
+import { authMiddleware } from "../../middlewares/auth.middleware";
 import {
   createJobSchema,
   updateJobSchema,
@@ -35,7 +36,7 @@ const jobController = new JobController();
 router.post(
   "/",
   validate(createJobSchema),
-  // authMiddleware, // Uncomment when auth is ready
+  authMiddleware, // Uncomment when auth is ready
   // roleMiddleware("recruiter"), // Uncomment when role check is ready
   jobController.createJob.bind(jobController),
 );
@@ -47,7 +48,7 @@ router.post(
  */
 router.get(
   "/my-jobs",
-  // authMiddleware, // Uncomment when auth is ready
+  authMiddleware, // Uncomment when auth is ready
   // roleMiddleware("recruiter"), // Uncomment when role check is ready
   jobController.getMyJobs.bind(jobController),
 );
@@ -74,7 +75,7 @@ router.get(
 router.patch(
   "/:id",
   validate(updateJobSchema),
-  // authMiddleware, // Uncomment when auth is ready
+  authMiddleware, // Uncomment when auth is ready
   // roleMiddleware("recruiter"), // Uncomment when role check is ready
   jobController.updateJob.bind(jobController),
 );
@@ -88,7 +89,7 @@ router.patch(
 router.delete(
   "/:id",
   validate(deleteJobSchema),
-  // authMiddleware, // Uncomment when auth is ready
+  authMiddleware, // Uncomment when auth is ready
   // roleMiddleware("recruiter"), // Uncomment when role check is ready
   jobController.deleteJob.bind(jobController),
 );

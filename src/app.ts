@@ -13,6 +13,9 @@ const app: Application = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
 
 if (env.NODE_ENV === "development") {
   app.use(morgan("dev"));

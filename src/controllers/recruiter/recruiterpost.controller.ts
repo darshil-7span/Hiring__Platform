@@ -269,7 +269,7 @@ export class JobController {
       }
 
       const jobId = BigInt(req.params.id as string);
-      const recruiterId = BigInt(req.user.id);
+      const recruiterId = BigInt(req.user?.id);
 
       // Verify job belongs to recruiter
       const job = await jobRepository.getJobById(jobId);
@@ -281,7 +281,18 @@ export class JobController {
         });
       }
 
-      if (job.recruiter_id !== recruiterId) {
+    //   console.log("Job recruiter_id:", job.recruiter_id);
+    //   console.log("Token recruiterId:", recruiterId);
+    //   console.log(
+    //     "Compare:",
+    //     job.recruiter_id?.toString(),
+    //     recruiterId.toString(),
+    //   );
+
+      if (
+        !job.recruiter_id ||
+        job.recruiter_id.toString() !== recruiterId.toString()
+      ) {
         return res.status(403).json({
           success: false,
           message: "You are not authorized to delete this job",
@@ -298,7 +309,7 @@ export class JobController {
         },
       });
     } catch (error: any) {
-      console.error("Error deleting job:", error);
+    //   console.error("Error deleting job:", error);
       return res.status(500).json({
         success: false,
         message: error.message || "Failed to delete job",
