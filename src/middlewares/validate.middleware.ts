@@ -14,6 +14,9 @@ import { ZodSchema, ZodError, ZodIssue } from "zod";
 export const validate = (schema: ZodSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log("📋 Validating request:", req.method, req.path);
+      console.log("📦 Body:", req.body);
+      
       // Validate request data against schema
       await schema.parseAsync({
         body: req.body,
@@ -21,9 +24,11 @@ export const validate = (schema: ZodSchema) => {
         params: req.params,
       });
       
+      console.log("✅ Validation passed");
       // If validation passes, continue to next middleware/controller
       return next();
     } catch (error) {
+      console.log("❌ Validation failed:", error);
       // If validation fails, return 400 with detailed errors
       if (error instanceof ZodError) {
         return res.status(400).json({

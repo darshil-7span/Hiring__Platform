@@ -3,10 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 
 import { env } from "./config/env";
-import routes from "./routes/index";
-
-// routes
-// import healthRoutes from "./routes/health.routes";
+import routes from "./routes";
 
 const app: Application = express();
 
@@ -24,14 +21,14 @@ if (env.NODE_ENV === "development") {
 /* ===============================
    ROUTES
 ================================ */
-// app.use("/api/health", healthRoutes);
-
-// Main API routes
 app.use("/api", routes);
 
-app.use("/", (req, res, next) => {
-  console.log("✅ Connected");
-  next();
+app.use("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Hiring Platform API",
+    version: "1.0.0",
+  });
 });
 
 /* ===============================
