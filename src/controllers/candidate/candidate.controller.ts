@@ -1,9 +1,84 @@
 import { Request, Response } from "express";
 import { JobRepository } from "../../repositories/job.repository";
+import { candidateService } from "../../services/candidate.service";
 
 const jobRepository = new JobRepository();
 
 export class CandidateController {
+  /**
+   * Get candidate profile
+   * GET /api/candidate/profile
+   */
+  async getProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;  // From auth middleware
+      
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
+
+      const profile = await candidateService.getProfile(BigInt(userId));
+
+      res.status(200).json({
+        success: true,
+        message: "Profile retrieved successfully",
+        data: profile,
+      });
+    } catch (error) {
+      console.error("❌ Get profile error:", error);
+      const message = error instanceof Error ? error.message : "Failed to get profile";
+      res.status(404).json({
+        success: false,
+        message,
+      });
+    }
+  }
+
+  /**
+   * Update candidate profile
+   * PATCH /api/candidate/profile
+   */
+  async updateProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;  // From auth middleware
+      
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
+
+      const { state_id, city_id, qualification, experience_years, resume_url } = req.body;
+
+      const profile = await candidateService.updateProfile(BigInt(userId), {
+        state_id,
+        city_id,
+        qualification,
+        experience_years,
+        resume_url,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Profile updated successfully",
+        data: profile,
+      });
+    } catch (error) {
+      console.error("❌ Update profile error:", error);
+      const message = error instanceof Error ? error.message : "Failed to update profile";
+      res.status(400).json({
+        success: false,
+        message,
+      });
+    }
+  }
+
   /**
    * CANDIDATE: Apply to a job using authenticated user id
    * Route: POST /api/candidate/apply
