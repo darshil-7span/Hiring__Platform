@@ -1,4 +1,5 @@
 import { Router } from "express";
+import authRoutes from "./auth/auth.routes";
 
 // Import all routes
 import jobRoutes from "./jobs/job.routes";
@@ -26,29 +27,6 @@ const router = Router();
  *   GET    /api/jobs/filter?...   - Filter jobs by location, salary, etc.
  */
 router.use("/jobs", jobRoutes);
-
-/**
- * Auth Routes (Example - uncomment when ready)
- * Base: /api/auth
- */
-// router.use("/auth", authRoutes);
-
-/**
- * Application Routes (Example)
- * Base: /api/applications
- */
-// router.use("/applications", applicationRoutes);
-
-export default router;
-import { Router } from "express";
-import authRoutes from "./auth/auth.routes";
-
-/**
- * Main Router
- * Combines all module routes
- */
-
-const router = Router();
 
 // Mount module routes
 router.use("/auth", authRoutes);
