@@ -3,7 +3,7 @@ import authRoutes from "./auth/auth.routes";
 
 // Import all routes
 import jobRoutes from "./jobs/job.routes";
-// import authRoutes from "./auth/auth.routes";
+import candidateRoutes from "./candidate/candidate.routes";
 // import applicationRoutes from "./application/application.routes";
 
 /**
@@ -27,6 +27,14 @@ const router = Router();
  *   GET    /api/jobs/filter?...   - Filter jobs by location, salary, etc.
  */
 router.use("/jobs", jobRoutes);
+
+/**
+ * Candidate Routes
+ * Base: /api/candidate
+ * Routes:
+ *   POST   /api/candidate/apply   - Apply to a job (candidate)
+ */
+router.use("/candidate", candidateRoutes);
 
 // Mount module routes
 router.use("/auth", authRoutes);
