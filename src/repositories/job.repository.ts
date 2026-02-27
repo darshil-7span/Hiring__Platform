@@ -318,4 +318,39 @@ export class JobRepository {
       },
     });
   }
+
+  /**
+   * Create a job application for a candidate
+   */
+  async applyToJob(candidateId: bigint, jobPostId: number) {
+    // Ensure job exists and is active
+    const job = await prisma.jobPost.findUnique({
+      where: { id: BigInt(jobPostId) },
+    });
+
+    if (!job || job.job_status !== "Active") {
+      throw new Error("Job not found or not active");
+    }
+
+    // Prevent duplicate applications for the same job by the same candidate
+    const existingApplication = await prisma.application.findFirst({
+      where: {
+        job_id: job.id,
+        candidate_id: candidateId,
+      },
+    });
+
+    if (existingApplication) {
+      throw new Error("You have already applied for this job");
+    }
+
+    return prisma.application.create({
+      data: {
+        job_id: job.id,
+        candidate_id: candidateId,
+        status: "Applied",
+        applied_at: new Date(),
+      },
+    });
+  }
 }
