@@ -2,6 +2,7 @@ import { Router } from "express";
 import { JobController } from "../../controllers/recruiter/recruiterpost.controller";
 import { validate } from "../../middlewares/validate.middleware";
 import { authMiddleware } from "../../middlewares/auth.middleware";
+import { roleMiddleware } from "../../middlewares/role.middleware";
 import {
   createJobSchema,
   updateJobSchema,
@@ -36,8 +37,8 @@ const jobController = new JobController();
 router.post(
   "/",
   validate(createJobSchema),
-  authMiddleware, // Uncomment when auth is ready
-  // roleMiddleware("recruiter"), // Uncomment when role check is ready
+  authMiddleware,
+  roleMiddleware("recruiter"),
   jobController.createJob.bind(jobController),
 );
 
@@ -48,8 +49,8 @@ router.post(
  */
 router.get(
   "/my-jobs",
-  authMiddleware, // Uncomment when auth is ready
-  // roleMiddleware("recruiter"), // Uncomment when role check is ready
+  authMiddleware,
+  roleMiddleware("recruiter"),
   jobController.getMyJobs.bind(jobController),
 );
 
@@ -75,8 +76,8 @@ router.get(
 router.patch(
   "/:id",
   validate(updateJobSchema),
-  authMiddleware, // Uncomment when auth is ready
-  // roleMiddleware("recruiter"), // Uncomment when role check is ready
+  authMiddleware,
+  roleMiddleware("recruiter"),
   jobController.updateJob.bind(jobController),
 );
 
@@ -89,8 +90,8 @@ router.patch(
 router.delete(
   "/:id",
   validate(deleteJobSchema),
-  authMiddleware, // Uncomment when auth is ready
-  // roleMiddleware("recruiter"), // Uncomment when role check is ready
+  authMiddleware,
+  roleMiddleware("recruiter"),
   jobController.deleteJob.bind(jobController),
 );
 
@@ -101,11 +102,13 @@ router.delete(
 /**
  * GET /api/jobs/search?q=developer
  * Search jobs by title and description
- * Auth: Not required
+ * Auth: Required (Recruiter, Candidate)
  * Query: { q: searchTerm }
  */
 router.get(
   "/search/jobs",
+  authMiddleware,
+  roleMiddleware("recruiter", "candidate"),
   validate(searchJobSchema),
   jobController.searchJobs.bind(jobController),
 );
@@ -113,7 +116,7 @@ router.get(
 /**
  * GET /api/jobs/filter?stateId=1&cityId=2&salaryMin=100000&salaryMax=500000
  * Filter jobs by location, salary, employment type, job type
- * Auth: Not required
+ * Auth: Required (Recruiter, Candidate)
  * Query: { stateId?, cityId?, salaryMin?, salaryMax?, employmentType?, jobType?, limit?, offset? }
  *
  * Example Queries:
@@ -126,6 +129,8 @@ router.get(
  */
 router.get(
   "/browse/all",
+  authMiddleware,
+  roleMiddleware("recruiter", "candidate"),
   validate(filterJobSchema),
   jobController.filterJobs.bind(jobController),
 );
@@ -133,9 +138,14 @@ router.get(
 /**
  * GET /api/jobs
  * Get all active jobs (paginated)
- * Auth: Not required
+ * Auth: Required (Recruiter, Candidate)
  * Query: { limit?, offset? }
  */
-router.get("/", jobController.getAllJobs.bind(jobController));
+router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware("recruiter", "candidate"),
+  jobController.getAllJobs.bind(jobController),
+);
 
 export default router;

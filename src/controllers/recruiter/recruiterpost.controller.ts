@@ -281,13 +281,13 @@ export class JobController {
         });
       }
 
-    //   console.log("Job recruiter_id:", job.recruiter_id);
-    //   console.log("Token recruiterId:", recruiterId);
-    //   console.log(
-    //     "Compare:",
-    //     job.recruiter_id?.toString(),
-    //     recruiterId.toString(),
-    //   );
+      //   console.log("Job recruiter_id:", job.recruiter_id);
+      //   console.log("Token recruiterId:", recruiterId);
+      //   console.log(
+      //     "Compare:",
+      //     job.recruiter_id?.toString(),
+      //     recruiterId.toString(),
+      //   );
 
       if (
         !job.recruiter_id ||
@@ -309,7 +309,7 @@ export class JobController {
         },
       });
     } catch (error: any) {
-    //   console.error("Error deleting job:", error);
+      //   console.error("Error deleting job:", error);
       return res.status(500).json({
         success: false,
         message: error.message || "Failed to delete job",
@@ -321,10 +321,19 @@ export class JobController {
    * BOTH ROLES: Filter jobs by location and salary range
    * Route: GET /api/jobs/filter?stateId=1&cityId=2&salaryMin=100000&salaryMax=500000
    * Query: { stateId?, cityId?, salaryMin?, salaryMax?, employmentType?, jobType?, limit?, offset? }
-   * Auth: Not required (publicly searchable)
+   * Auth: Required (Recruiter, Candidate)
    */
   async filterJobs(req: Request, res: Response) {
     try {
+      // Check authentication
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message:
+            "Unauthorized - User authentication required to access filters",
+        });
+      }
+
       const filters = req.query as any;
 
       const jobs = await jobRepository.filterJobs(filters);
@@ -375,10 +384,18 @@ export class JobController {
    * BOTH ROLES: Search jobs by title and description
    * Route: GET /api/jobs/search?q=developer
    * Query: { q: string }
-   * Auth: Not required (publicly searchable)
+   * Auth: Required (Recruiter, Candidate)
    */
   async searchJobs(req: Request, res: Response) {
     try {
+      // Check authentication
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized - User authentication required to search jobs",
+        });
+      }
+
       const searchTerm = req.query.q as string;
 
       if (!searchTerm || searchTerm.length < 2) {
@@ -429,10 +446,18 @@ export class JobController {
    * BOTH ROLES: Get all active jobs (browsable)
    * Route: GET /api/jobs
    * Query: { limit?, offset? }
-   * Auth: Not required
+   * Auth: Required (Recruiter, Candidate)
    */
   async getAllJobs(req: Request, res: Response) {
     try {
+      // Check authentication
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized - User authentication required to browse jobs",
+        });
+      }
+
       const limit = parseInt((req.query.limit as string) || "10");
       const offset = parseInt((req.query.offset as string) || "0");
 
