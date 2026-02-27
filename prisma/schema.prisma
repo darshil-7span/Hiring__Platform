@@ -274,5 +274,6 @@ model Application {
   job       JobPost? @relation(fields: [job_id], references: [id])
   candidate User?    @relation("CandidateApplications", fields: [candidate_id], references: [id])
 
+  @@unique([candidate_id, job_id], name: "unique_candidate_job_application")
   @@map("applications")
 }
