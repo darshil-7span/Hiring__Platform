@@ -18,7 +18,77 @@ JobPost Table (job_id)
 
 ## 🚀 **API Endpoints**
 
-### **1. Get All Candidate Applications**
+### **0. Apply to a Job (Create Application)**
+
+Submit a job application as a candidate.
+
+```http
+POST http://localhost:5004/api/candidate/apply
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+```
+
+#### **Request Body:**
+```json
+{
+  "jobPostId": 5
+}
+```
+
+#### **cURL:**
+```bash
+curl -X POST http://localhost:5004/api/candidate/apply \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_CANDIDATE_TOKEN" \
+  -d '{
+    "jobPostId": 5
+  }'
+```
+
+#### **Success Response (201):**
+```json
+{
+  "success": true,
+  "message": "Job application submitted successfully",
+  "data": {
+    "applicationId": "1",
+    "jobPostId": "5",
+    "candidateId": "7",
+    "status": "Applied",
+    "appliedAt": "2026-02-27T10:30:00.000Z"
+  }
+}
+```
+
+#### **Error Responses:**
+
+**Already Applied (400):**
+```json
+{
+  "success": false,
+  "message": "You have already applied for this job"
+}
+```
+
+**Job Not Found/Inactive (400):**
+```json
+{
+  "success": false,
+  "message": "Job not found or not active"
+}
+```
+
+**Unauthorized (401):**
+```json
+{
+  "success": false,
+  "message": "Unauthorized - User ID not found"
+}
+```
+
+---
+
+### **2. Get All Candidate Applications**
 
 Shows all candidates who applied for jobs with complete details.
 
@@ -122,7 +192,7 @@ curl -X GET http://localhost:5004/api/applications/candidates \
 
 ---
 
-### **2. Get Applications for Specific Job**
+### **3. Get Applications for Specific Job**
 
 Shows all candidates who applied for a specific job.
 
@@ -196,7 +266,7 @@ curl -X GET http://localhost:5004/api/applications/job/5 \
 
 ---
 
-### **3. Get My Applications (Candidate)**
+### **4. Get My Applications (Candidate)**
 
 Shows all jobs the logged-in candidate applied for.
 
@@ -267,6 +337,25 @@ curl -X GET http://localhost:5004/api/applications/my-applications \
 ---
 
 ## 🧪 **Testing Flow**
+
+### **Step 0: Apply to a Job**
+```bash
+# Login as candidate first
+curl -X POST http://localhost:5004/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "YourPassword123"
+  }'
+
+# Apply to job using the token
+curl -X POST http://localhost:5004/api/candidate/apply \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "jobPostId": 5
+  }'
+```
 
 ### **Step 1: Get All Candidate Applications**
 ```bash
