@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { JobController } from "../../controllers/recruiter/recruiterpost.controller";
+import { jobController } from "../../controllers/recruiter/recruiterpost.controller";
 import { validate } from "../../middlewares/validate.middleware";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { roleMiddleware } from "../../middlewares/role.middleware";
@@ -22,12 +22,10 @@ import {
  */
 
 const router = Router();
-const jobController = new JobController();
 
 /**
  * ==================== RECRUITER ROUTES ====================
  */
-
 /**
  * POST /api/jobs
  * Create a new job post

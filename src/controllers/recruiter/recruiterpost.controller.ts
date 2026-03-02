@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { JobRepository } from "../../repositories/job.repository";
+import { jobRepository } from "../../repositories/job.repository";
 import {
   CreateJobRequest,
   UpdateJobRequest,
@@ -24,16 +24,13 @@ declare global {
   }
 }
 
-const jobRepository = new JobRepository();
-
-export class JobController {
-  /**
-   * RECRUITER: Post a new job
-   * Route: POST /api/jobs
-   * Body: { title, description, employmentType, jobType, salaryMin, salaryMax, stateId, cityId, skillIds, ... }
-   * Auth: Required (Recruiter role)
-   */
-  async createJob(req: Request, res: Response) {
+/**
+ * RECRUITER: Post a new job
+ * Route: POST /api/jobs
+ * Body: { title, description, employmentType, jobType, salaryMin, salaryMax, stateId, cityId, skillIds, ... }
+ * Auth: Required (Recruiter role)
+ */
+const createJob = async (req: Request, res: Response) => {
     try {
       // Extract recruiter ID from authenticated user (from token)
       console.log("Authenticated user:", req.user);
@@ -72,15 +69,15 @@ export class JobController {
         message: error.message || "Failed to create job",
       });
     }
-  }
+};
 
-  /**
-   * RECRUITER: Get all jobs posted by the recruiter
-   * Route: GET /api/jobs/my-jobs
-   * Auth: Required (Recruiter role)
-   */
-  async getMyJobs(req: Request, res: Response) {
-    try {
+/**
+ * RECRUITER: Get all jobs posted by the recruiter
+ * Route: GET /api/jobs/my-jobs
+ * Auth: Required (Recruiter role)
+ */
+const getMyJobs = async (req: Request, res: Response) => {
+  try {
       if (!req.user?.id) {
         return res.status(401).json({
           success: false,
@@ -118,15 +115,15 @@ export class JobController {
         message: error.message || "Failed to fetch jobs",
       });
     }
-  }
+};
 
-  /**
-   * RECRUITER: Get a specific job by ID (with applications)
-   * Route: GET /api/jobs/:id
-   * Auth: Required (Recruiter role - for own jobs)
-   */
-  async getJobById(req: Request, res: Response) {
-    try {
+/**
+ * RECRUITER: Get a specific job by ID (with applications)
+ * Route: GET /api/jobs/:id
+ * Auth: Required (Recruiter role - for own jobs)
+ */
+const getJobById = async (req: Request, res: Response) => {
+  try {
       const jobId = BigInt(req.params.id as string);
 
       const job = await jobRepository.getJobById(jobId);
@@ -190,16 +187,16 @@ export class JobController {
         message: error.message || "Failed to fetch job",
       });
     }
-  }
+};
 
-  /**
-   * RECRUITER: Update a job
-   * Route: PATCH /api/jobs/:id
-   * Body: { title?, description?, salary?, location?, ... }
-   * Auth: Required (Recruiter - owner only)
-   */
-  async updateJob(req: Request, res: Response) {
-    try {
+/**
+ * RECRUITER: Update a job
+ * Route: PATCH /api/jobs/:id
+ * Body: { title?, description?, salary?, location?, ... }
+ * Auth: Required (Recruiter - owner only)
+ */
+const updateJob = async (req: Request, res: Response) => {
+  try {
       if (!req.user?.id) {
         return res.status(401).json({
           success: false,
@@ -252,15 +249,15 @@ export class JobController {
         message: error.message || "Failed to update job",
       });
     }
-  }
+};
 
-  /**
-   * RECRUITER: Delete a job
-   * Route: DELETE /api/jobs/:id
-   * Auth: Required (Recruiter - owner only)
-   */
-  async deleteJob(req: Request, res: Response) {
-    try {
+/**
+ * RECRUITER: Delete a job
+ * Route: DELETE /api/jobs/:id
+ * Auth: Required (Recruiter - owner only)
+ */
+const deleteJob = async (req: Request, res: Response) => {
+  try {
       if (!req.user?.id) {
         return res.status(401).json({
           success: false,
@@ -315,16 +312,16 @@ export class JobController {
         message: error.message || "Failed to delete job",
       });
     }
-  }
+};
 
-  /**
-   * BOTH ROLES: Filter jobs by location and salary range
-   * Route: GET /api/jobs/filter?stateId=1&cityId=2&salaryMin=100000&salaryMax=500000
-   * Query: { stateId?, cityId?, salaryMin?, salaryMax?, employmentType?, jobType?, limit?, offset? }
-   * Auth: Required (Recruiter, Candidate)
-   */
-  async filterJobs(req: Request, res: Response) {
-    try {
+/**
+ * BOTH ROLES: Filter jobs by location and salary range
+ * Route: GET /api/jobs/filter?stateId=1&cityId=2&salaryMin=100000&salaryMax=500000
+ * Query: { stateId?, cityId?, salaryMin?, salaryMax?, employmentType?, jobType?, limit?, offset? }
+ * Auth: Required (Recruiter, Candidate)
+ */
+const filterJobs = async (req: Request, res: Response) => {
+  try {
       // Check authentication
       if (!req.user?.id) {
         return res.status(401).json({
@@ -378,16 +375,16 @@ export class JobController {
         message: error.message || "Failed to filter jobs",
       });
     }
-  }
+};
 
-  /**
-   * BOTH ROLES: Search jobs by title and description
-   * Route: GET /api/jobs/search?q=developer
-   * Query: { q: string }
-   * Auth: Required (Recruiter, Candidate)
-   */
-  async searchJobs(req: Request, res: Response) {
-    try {
+/**
+ * BOTH ROLES: Search jobs by title and description
+ * Route: GET /api/jobs/search?q=developer
+ * Query: { q: string }
+ * Auth: Required (Recruiter, Candidate)
+ */
+const searchJobs = async (req: Request, res: Response) => {
+  try {
       // Check authentication
       if (!req.user?.id) {
         return res.status(401).json({
@@ -440,16 +437,16 @@ export class JobController {
         message: error.message || "Failed to search jobs",
       });
     }
-  }
+};
 
-  /**
-   * BOTH ROLES: Get all active jobs (browsable)
-   * Route: GET /api/jobs
-   * Query: { limit?, offset? }
-   * Auth: Required (Recruiter, Candidate)
-   */
-  async getAllJobs(req: Request, res: Response) {
-    try {
+/**
+ * BOTH ROLES: Get all active jobs (browsable)
+ * Route: GET /api/jobs
+ * Query: { limit?, offset? }
+ * Auth: Required (Recruiter, Candidate)
+ */
+const getAllJobs = async (req: Request, res: Response) => {
+  try {
       // Check authentication
       if (!req.user?.id) {
         return res.status(401).json({
@@ -505,5 +502,16 @@ export class JobController {
         message: error.message || "Failed to fetch jobs",
       });
     }
-  }
-}
+};
+
+export const jobController = {
+  createJob,
+  getMyJobs,
+  getJobById,
+  updateJob,
+  deleteJob,
+  filterJobs,
+  searchJobs,
+  getAllJobs,
+};
+

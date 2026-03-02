@@ -31,100 +31,100 @@ export interface AuthResponse {
   token: string;
 }
 
-export class AuthService {
-  /**
-   * Register new user
-   */
-  async register(input: RegisterInput): Promise<AuthResponse> {
-    // Check if email already exists
-    const emailExists = await authRepository.emailExists(input.email);
-    if (emailExists) {
-      throw new Error("Email already registered");
-    }
-
-    // Find role
-    const role = await authRepository.findRoleByName(input.role_name);
-    if (!role) {
-      throw new Error(`Role '${input.role_name}' not found`);
-    }
-
-    // Hash password
-    const hashedPassword = await hashPassword(input.password);
-
-    // Create user
-    const user = await authRepository.createUser({
-      name: input.name,
-      email: input.email,
-      password: hashedPassword,
-      phone_number: input.phone_number,
-      country_id: input.country_id,
-      role_id: role.id,
-    });
-
-    // Create appropriate profile based on role
-    if (role.role_name === "candidate") {
-      await authRepository.upsertCandidateProfile(user.id);
-    } else if (role.role_name === "recruiter") {
-      await authRepository.upsertRecruiterProfile(user.id);
-    }
-
-    // Generate JWT token
-    const token = generateToken({
-      userId: Number(user.id),
-      email: user.email,
-      role: user.role.role_name,
-    });
-
-    return {
-      user: {
-        id: Number(user.id),
-        name: user.name || "",
-        email: user.email,
-        role: user.role.role_name,
-      },
-      token,
-    };
+/**
+ * Register new user
+ */
+const register = async (input: RegisterInput): Promise<AuthResponse> => {
+  // Check if email already exists
+  const emailExists = await authRepository.emailExists(input.email);
+  if (emailExists) {
+    throw new Error("Email already registered");
   }
 
-  /**
-   * Login user
-   */
-  async login(input: LoginInput): Promise<AuthResponse> {
-    // Find user by email
-    const user = await authRepository.findUserByEmail(input.email);
-    if (!user) {
-      throw new Error("Invalid credentials");
-    }
+  // Find role
+  const role = await authRepository.findRoleByName(input.role_name);
+  if (!role) {
+    throw new Error(`Role '${input.role_name}' not found`);
+  }
 
-    // Check if user is active
-    if (!user.is_active) {
-      throw new Error("Account is inactive");
-    }
+  // Hash password
+  const hashedPassword = await hashPassword(input.password);
 
-    // Compare password
-    const isPasswordValid = await comparePassword(input.password, user.password || "");
-    if (!isPasswordValid) {
-      throw new Error("Invalid credentials");
-    }
+  // Create user
+  const user = await authRepository.createUser({
+    name: input.name,
+    email: input.email,
+    password: hashedPassword,
+    phone_number: input.phone_number,
+    country_id: input.country_id,
+    role_id: role.id,
+  });
 
-    // Generate JWT token
-    const token = generateToken({
-      userId: Number(user.id),
+  // Create appropriate profile based on role
+  if (role.role_name === "candidate") {
+    await authRepository.upsertCandidateProfile(user.id);
+  } else if (role.role_name === "recruiter") {
+    await authRepository.upsertRecruiterProfile(user.id);
+  }
+
+  // Generate JWT token
+  const token = generateToken({
+    userId: Number(user.id),
+    email: user.email,
+    role: user.role.role_name,
+  });
+
+  return {
+    user: {
+      id: Number(user.id),
+      name: user.name || "",
       email: user.email,
       role: user.role.role_name,
-    });
+    },
+    token,
+  };
+};
 
-    return {
-      user: {
-        id: Number(user.id),
-        name: user.name || "",
-        email: user.email,
-        role: user.role.role_name,
-      },
-      token,
-    };
+/**
+ * Login user
+ */
+const login = async (input: LoginInput): Promise<AuthResponse> => {
+  // Find user by email
+  const user = await authRepository.findUserByEmail(input.email);
+  if (!user) {
+    throw new Error("Invalid credentials");
   }
-}
 
-// Export singleton instance
-export const authService = new AuthService();
+  // Check if user is active
+  if (!user.is_active) {
+    throw new Error("Account is inactive");
+  }
+
+  // Compare password
+  const isPasswordValid = await comparePassword(input.password, user.password || "");
+  if (!isPasswordValid) {
+    throw new Error("Invalid credentials");
+  }
+
+  // Generate JWT token
+  const token = generateToken({
+    userId: Number(user.id),
+    email: user.email,
+    role: user.role.role_name,
+  });
+
+  return {
+    user: {
+      id: Number(user.id),
+      name: user.name || "",
+      email: user.email,
+      role: user.role.role_name,
+    },
+    token,
+  };
+};
+
+export const authService = {
+  register,
+  login,
+};
