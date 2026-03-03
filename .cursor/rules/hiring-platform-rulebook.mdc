@@ -1,0 +1,43 @@
+---
+description: Core rules and tech stack for the Hiring Platform project
+alwaysApply: true
+---
+
+# Hiring Platform Rulebook
+
+This rulebook applies to all work done in the Hiring Platform repository.
+
+## API and Feature Creation Rules
+
+- **Refer to API docs first**:
+  - Before creating or modifying any API, controller, or major backend function, review the project docs:
+    - `docs/API_ROUTES_REFERENCE.md`
+    - `docs/ZOD_GUIDE.md`
+    - `docs/ZOD_REQUIREMENTS.md`
+    - `docs/API_REQUEST_RESPONSE_STRUCTURE.md`
+  - Align new APIs and handlers with the documented routes, validation patterns, and response shapes.
+
+- **Follow validation standards**:
+  - Use existing Zod schemas and patterns as a reference when adding new request/response validation.
+  - Prefer extending existing schemas over creating ad-hoc validation logic.
+
+## User Validation Before Permanent Changes
+
+- **Always confirm before large edits**:
+  - Before making permanent, large-scope changes (new APIs, major refactors, or changes touching multiple modules), clearly summarize:
+    - What will be changed
+    - Which files will be affected
+    - Any behavioral or API-contract impact
+  - Ask the user for explicit confirmation before applying these changes.
+
+- **Diff visibility**:
+  - When practical, describe key code edits or structural changes so the user can validate intent before they are finalized.
+
+## Primary Tech Stack
+
+- **Backend runtime**: Node.js with TypeScript
+- **Framework / HTTP layer**: Express (or similar minimal HTTP framework)
+- **ORM / Database access**: Prisma targeting PostgreSQL
+- **Validation**: Zod schemas for request/response and domain validation
+- **Tooling**: Nodemon + `tsx` for development server, dotenv for configuration
+
