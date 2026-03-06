@@ -1,17 +1,20 @@
 import prisma from "../config/prisma";
 import { CreateJobRequest, FilterJobRequest } from "../schemas/job.schema";
+import { getLogger } from "../utils/logger";
+
+const logger = getLogger("JobDAO");
 
 /**
- * JOB REPOSITORY
- * Handles all database operations for job posts
+ * Job Repository (DAO Layer)
+ * All database operations related to job posts
  */
 
 /**
  * Create a new job post
- * Used by recruiters to post a new job
  */
 const createJob = async (recruiterId: bigint, data: CreateJobRequest["body"]) => {
-  return prisma.jobPost.create({
+  logger.info(`Creating job post for recruiter: ${recruiterId}`);
+  const job = await prisma.jobPost.create({
     data: {
       recruiter_id: recruiterId,
       job_title: data.title,
@@ -48,13 +51,16 @@ const createJob = async (recruiterId: bigint, data: CreateJobRequest["body"]) =>
       city: true,
     },
   });
+  logger.info(`Job post created successfully: ${job.id}`);
+  return job;
 };
 
 /**
  * Get job by ID with all details
  */
 const getJobById = async (jobId: bigint) => {
-  return prisma.jobPost.findUnique({
+  logger.info(`Querying job by ID: ${jobId}`);
+  const job = await prisma.jobPost.findUnique({
     where: { id: jobId },
     include: {
       recruiter: {
@@ -82,13 +88,16 @@ const getJobById = async (jobId: bigint) => {
       },
     },
   });
+  logger.info(`Job ${job ? "found" : "not found"} for ID: ${jobId}`);
+  return job;
 };
 
 /**
  * Get all jobs posted by a specific recruiter
  */
 const getRecruiterJobs = async (recruiterId: bigint) => {
-  return prisma.jobPost.findMany({
+  logger.info(`Querying jobs for recruiter: ${recruiterId}`);
+  const jobs = await prisma.jobPost.findMany({
     where: {
       recruiter_id: recruiterId,
     },
@@ -114,12 +123,16 @@ const getRecruiterJobs = async (recruiterId: bigint) => {
       created_at: "desc",
     },
   });
+  logger.info(`Found ${jobs.length} jobs for recruiter: ${recruiterId}`);
+  return jobs;
 };
 
 /**
  * Update a job post
  */
 const updateJob = async (jobId: bigint, data: any) => {
+  logger.info(`Updating job: ${jobId}`);
+  
   // Disconnect old skills first
   await prisma.jobSkill.deleteMany({
     where: {
@@ -127,7 +140,7 @@ const updateJob = async (jobId: bigint, data: any) => {
     },
   });
 
-  return prisma.jobPost.update({
+  const updatedJob = await prisma.jobPost.update({
     where: { id: jobId },
     data: {
       job_title: data.title,
@@ -166,12 +179,16 @@ const updateJob = async (jobId: bigint, data: any) => {
       city: true,
     },
   });
+  logger.info(`Job updated successfully: ${jobId}`);
+  return updatedJob;
 };
 
 /**
  * Delete a job post
  */
 const deleteJob = async (jobId: bigint) => {
+  logger.info(`Deleting job: ${jobId}`);
+  
   // Delete related records first
   await prisma.jobSkill.deleteMany({
     where: { job_id: jobId },
@@ -181,16 +198,18 @@ const deleteJob = async (jobId: bigint) => {
     where: { job_id: jobId },
   });
 
-  return prisma.jobPost.delete({
+  const deletedJob = await prisma.jobPost.delete({
     where: { id: jobId },
   });
+  logger.info(`Job deleted successfully: ${jobId}`);
+  return deletedJob;
 };
 
 /**
  * Filter jobs by location and salary range
- * Used by candidates to search jobs
  */
 const filterJobs = async (filters: FilterJobRequest["query"]) => {
+  logger.info(`Filtering jobs with criteria`, filters);
   const whereConditions: any = {
     job_status: "Active",
   };
@@ -235,7 +254,7 @@ const filterJobs = async (filters: FilterJobRequest["query"]) => {
     whereConditions.job_type = filters.jobType;
   }
 
-  return prisma.jobPost.findMany({
+  const jobs = await prisma.jobPost.findMany({
     where: whereConditions,
     include: {
       recruiter: {
@@ -260,24 +279,30 @@ const filterJobs = async (filters: FilterJobRequest["query"]) => {
     take: filters.limit ? parseInt(filters.limit as string) : 10,
     skip: filters.offset ? parseInt(filters.offset as string) : 0,
   });
+  logger.info(`Found ${jobs.length} jobs matching filter criteria`);
+  return jobs;
 };
 
 /**
- * Get count of total active jobs (useful for pagination)
+ * Get count of total active jobs
  */
 const getTotalActiveJobs = async () => {
-  return prisma.jobPost.count({
+  logger.info(`Counting total active jobs`);
+  const count = await prisma.jobPost.count({
     where: {
       job_status: "Active",
     },
   });
+  logger.info(`Total active jobs: ${count}`);
+  return count;
 };
 
 /**
  * Search jobs by title and description
  */
 const searchJobs = async (searchTerm: string) => {
-  return prisma.jobPost.findMany({
+  logger.info(`Searching jobs with term: ${searchTerm}`);
+  const jobs = await prisma.jobPost.findMany({
     where: {
       job_status: "Active",
       OR: [
@@ -316,22 +341,27 @@ const searchJobs = async (searchTerm: string) => {
       created_at: "desc",
     },
   });
+  logger.info(`Found ${jobs.length} jobs matching search term: ${searchTerm}`);
+  return jobs;
 };
 
 /**
  * Create a job application for a candidate
  */
 const applyToJob = async (candidateId: bigint, jobPostId: number) => {
+  logger.info(`Candidate ${candidateId} applying to job: ${jobPostId}`);
+  
   // Ensure job exists and is active
   const job = await prisma.jobPost.findUnique({
     where: { id: BigInt(jobPostId) },
   });
 
   if (!job || job.job_status !== "Active") {
+    logger.warn(`Job not found or not active: ${jobPostId}`);
     throw new Error("Job not found or not active");
   }
 
-  // Prevent duplicate applications for the same job by the same candidate
+  // Prevent duplicate applications
   const existingApplication = await prisma.application.findFirst({
     where: {
       job_id: job.id,
@@ -340,10 +370,11 @@ const applyToJob = async (candidateId: bigint, jobPostId: number) => {
   });
 
   if (existingApplication) {
+    logger.warn(`Duplicate application attempt: Candidate ${candidateId}, Job ${jobPostId}`);
     throw new Error("You have already applied for this job");
   }
 
-  return prisma.application.create({
+  const application = await prisma.application.create({
     data: {
       job_id: job.id,
       candidate_id: candidateId,
@@ -351,6 +382,8 @@ const applyToJob = async (candidateId: bigint, jobPostId: number) => {
       applied_at: new Date(),
     },
   });
+  logger.info(`Application created successfully: ${application.id}`);
+  return application;
 };
 
 export const jobRepository = {

@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
 import { recruiterService } from "../../services/recruiter.service";
+import { getLogger } from "../../utils/logger";
+import { sendResponse } from "../../utils/apiResponse";
+import { UnauthorizedError } from "../../utils/errors";
+
+const logger = getLogger("RecruiterController");
 
 /**
  * Recruiter Controller (HTTP Layer)
@@ -11,32 +16,25 @@ import { recruiterService } from "../../services/recruiter.service";
  * GET /api/recruiter/profile
  */
 const getProfile = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const userId = req.user?.id;  // From auth middleware
-    
-    if (!userId) {
-      res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
-      return;
-    }
-
-    const profile = await recruiterService.getProfile(BigInt(userId));
-
-    res.status(200).json({
-      success: true,
-      message: "Profile retrieved successfully",
-      data: profile,
-    });
-  } catch (error) {
-    console.error("❌ Get profile error:", error);
-    const message = error instanceof Error ? error.message : "Failed to get profile";
-    res.status(404).json({
-      success: false,
-      message,
-    });
+  logger.info(`[GET_PROFILE] API request received`);
+  
+  const userId = req.user?.id;  // From auth middleware
+  
+  if (!userId) {
+    throw UnauthorizedError("User not authenticated");
   }
+
+  logger.info(`[GET_PROFILE] Fetching profile for user: ${userId}`);
+  const profile = await recruiterService.getProfile(BigInt(userId));
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Profile retrieved successfully",
+    data: profile,
+  });
+  
+  logger.info(`[GET_PROFILE] API response sent successfully`);
 };
 
 /**
@@ -44,38 +42,31 @@ const getProfile = async (req: Request, res: Response): Promise<void> => {
  * PATCH /api/recruiter/profile
  */
 const updateProfile = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const userId = req.user?.id;  // From auth middleware
-    
-    if (!userId) {
-      res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
-      return;
-    }
-
-    const { designation, state_id, city_id } = req.body;
-
-    const profile = await recruiterService.updateProfile(BigInt(userId), {
-      designation,
-      state_id,
-      city_id,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Profile updated successfully",
-      data: profile,
-    });
-  } catch (error) {
-    console.error("❌ Update profile error:", error);
-    const message = error instanceof Error ? error.message : "Failed to update profile";
-    res.status(400).json({
-      success: false,
-      message,
-    });
+  logger.info(`[UPDATE_PROFILE] API request received`);
+  
+  const userId = req.user?.id;  // From auth middleware
+  
+  if (!userId) {
+    throw UnauthorizedError("User not authenticated");
   }
+
+  const { designation, state_id, city_id } = req.body;
+
+  logger.info(`[UPDATE_PROFILE] Updating profile for user: ${userId}`);
+  const profile = await recruiterService.updateProfile(BigInt(userId), {
+    designation,
+    state_id,
+    city_id,
+  });
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Profile updated successfully",
+    data: profile,
+  });
+  
+  logger.info(`[UPDATE_PROFILE] API response sent successfully`);
 };
 
 export const recruiterController = {

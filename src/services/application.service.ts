@@ -1,4 +1,7 @@
 import { applicationRepository } from "../repositories/application.repository";
+import { getLogger } from "../utils/logger";
+
+const logger = getLogger("ApplicationService");
 
 /**
  * Application Service (Business Logic Layer)
@@ -9,6 +12,7 @@ import { applicationRepository } from "../repositories/application.repository";
  * Get all candidate applications
  */
 const getAllCandidateApplications = async () => {
+  logger.info(`[GET_ALL_APPLICATIONS] Fetching all candidate applications`);
   const applications = await applicationRepository.getCandidateApplications();
 
   return applications.map((app) => ({
@@ -49,12 +53,15 @@ const getAllCandidateApplications = async () => {
       },
     },
   }));
+  logger.info(`[GET_ALL_APPLICATIONS] Transformed ${applications.length} applications for response`);
+  return applications;
 };
 
 /**
  * Get applications for a specific job
  */
 const getApplicationsByJob = async (jobId: bigint) => {
+  logger.info(`[GET_APPLICATIONS_BY_JOB] Fetching applications for job: ${jobId}`);
   const applications = await applicationRepository.getApplicationsByJobId(jobId);
 
   return applications.map((app) => ({
@@ -77,12 +84,15 @@ const getApplicationsByJob = async (jobId: bigint) => {
       },
     },
   }));
+  logger.info(`[GET_APPLICATIONS_BY_JOB] Transformed ${applications.length} applications for job: ${jobId}`);
+  return applications;
 };
 
 /**
  * Get applications by candidate
  */
 const getApplicationsByCandidate = async (candidateId: bigint) => {
+  logger.info(`[GET_APPLICATIONS_BY_CANDIDATE] Fetching applications for candidate: ${candidateId}`);
   const applications = await applicationRepository.getApplicationsByCandidateId(candidateId);
 
   return applications.map((app) => ({
@@ -106,6 +116,8 @@ const getApplicationsByCandidate = async (candidateId: bigint) => {
       },
     },
   }));
+  logger.info(`[GET_APPLICATIONS_BY_CANDIDATE] Transformed ${applications.length} applications for candidate: ${candidateId}`);
+  return applications;
 };
 
 export const applicationService = {

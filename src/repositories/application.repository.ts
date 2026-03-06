@@ -1,4 +1,7 @@
 import prisma from "../config/prisma";
+import { getLogger } from "../utils/logger";
+
+const logger = getLogger("ApplicationDAO");
 
 /**
  * Application Repository (DAO Layer)
@@ -6,10 +9,11 @@ import prisma from "../config/prisma";
  */
 
 /**
- * Get all candidates who applied for jobs with full details
+ * Get all candidate applications with full details
  */
 const getCandidateApplications = async () => {
-  return await prisma.application.findMany({
+  logger.info(`Querying all candidate applications`);
+  const applications = await prisma.application.findMany({
     include: {
       // Get candidate details
       candidate: {
@@ -67,13 +71,16 @@ const getCandidateApplications = async () => {
       applied_at: 'desc', // Most recent first
     },
   });
+  logger.info(`Found ${applications.length} candidate applications`);
+  return applications;
 };
 
 /**
  * Get applications for a specific job
  */
 const getApplicationsByJobId = async (jobId: bigint) => {
-  return await prisma.application.findMany({
+  logger.info(`Querying applications for job: ${jobId}`);
+  const applications = await prisma.application.findMany({
     where: {
       job_id: jobId,
     },
@@ -108,13 +115,16 @@ const getApplicationsByJobId = async (jobId: bigint) => {
       applied_at: 'desc',
     },
   });
+  logger.info(`Found ${applications.length} applications for job: ${jobId}`);
+  return applications;
 };
 
 /**
  * Get applications by candidate ID
  */
 const getApplicationsByCandidateId = async (candidateId: bigint) => {
-  return await prisma.application.findMany({
+  logger.info(`Querying applications for candidate: ${candidateId}`);
+  const applications = await prisma.application.findMany({
     where: {
       candidate_id: candidateId,
     },
@@ -142,6 +152,8 @@ const getApplicationsByCandidateId = async (candidateId: bigint) => {
       applied_at: 'desc',
     },
   });
+  logger.info(`Found ${applications.length} applications for candidate: ${candidateId}`);
+  return applications;
 };
 
 export const applicationRepository = {

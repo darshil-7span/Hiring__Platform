@@ -1,9 +1,15 @@
 import { Request, Response } from "express";
 import { authService } from "../../services/auth/auth.service";
+import { BadRequestError, UnauthorizedError } from "../../utils/errors";
+import { sendResponse } from "../../utils/apiResponse";
+import { getLogger } from "../../utils/logger";
+
+const logger = getLogger("AuthController");
 
 /**
  * Auth Controller (HTTP Layer)
  * Handles HTTP requests and responses for authentication
+ * Express 5 automatically catches async errors!
  */
 
 /**
@@ -11,33 +17,27 @@ import { authService } from "../../services/auth/auth.service";
  * POST /api/auth/register
  */
 const register = async (req: Request, res: Response): Promise<void> => {
-  try {
-    console.log("📝 Register attempt:", req.body.email);
-    const { name, email, password, phone_number, country_id, role_name } = req.body;
+  logger.info(`[REGISTER] API request received for email: ${req.body.email}`);
+  
+  const { name, email, password, phone_number, country_id, role_name } = req.body;
 
-    const result = await authService.register({
-      name,
-      email,
-      password,
-      phone_number,
-      country_id,
-      role_name,
-    });
+  const result = await authService.register({
+    name,
+    email,
+    password,
+    phone_number,
+    country_id,
+    role_name,
+  });
 
-    console.log("✅ Registration successful for:", email);
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      data: result,
-    });
-  } catch (error) {
-    console.error("❌ Registration error:", error);
-    const message = error instanceof Error ? error.message : "Registration failed";
-    res.status(400).json({
-      success: false,
-      message,
-    });
-  }
+  logger.info(`[REGISTER] API response sent successfully for: ${email}`);
+  
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "User registered successfully",
+    data: result,
+  });
 };
 
 /**
@@ -45,29 +45,23 @@ const register = async (req: Request, res: Response): Promise<void> => {
  * POST /api/auth/login
  */
 const login = async (req: Request, res: Response): Promise<void> => {
-  try {
-    console.log("🔑 Login attempt:", req.body.email);
-    const { email, password } = req.body;
+  logger.info(`[LOGIN] API request received for email: ${req.body.email}`);
+  
+  const { email, password } = req.body;
 
-    const result = await authService.login({
-      email,
-      password,
-    });
+  const result = await authService.login({
+    email,
+    password,
+  });
 
-    console.log("✅ Login successful for:", email);
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      data: result,
-    });
-  } catch (error) {
-    console.error("❌ Login error:", error);
-    const message = error instanceof Error ? error.message : "Login failed";
-    res.status(401).json({
-      success: false,
-      message,
-    });
-  }
+  logger.info(`[LOGIN] API response sent successfully for: ${email}`);
+  
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Login successful",
+    data: result,
+  });
 };
 
 export const authController = {

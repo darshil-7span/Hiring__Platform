@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
 import { applicationService } from "../../services/application.service";
+import { getLogger } from "../../utils/logger";
+import { sendResponse } from "../../utils/apiResponse";
+import { BadRequestError, UnauthorizedError } from "../../utils/errors";
+
+const logger = getLogger("ApplicationController");
 
 /**
  * Application Controller (HTTP Layer)
@@ -12,25 +17,21 @@ import { applicationService } from "../../services/application.service";
  * Shows which candidates applied for which jobs
  */
 const getAllCandidateApplications = async (req: Request, res: Response): Promise<void> => {
-  try {
-    console.log("📋 Fetching all candidate applications...");
+  logger.info(`[GET_ALL_APPLICATIONS] API request received`);
 
-    const applications = await applicationService.getAllCandidateApplications();
+  const applications = await applicationService.getAllCandidateApplications();
 
-    res.status(200).json({
-      success: true,
-      message: "Candidate applications retrieved successfully",
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Candidate applications retrieved successfully",
+    data: {
       count: applications.length,
-      data: applications,
-    });
-  } catch (error) {
-    console.error("❌ Error fetching applications:", error);
-    const message = error instanceof Error ? error.message : "Failed to fetch applications";
-    res.status(500).json({
-      success: false,
-      message,
-    });
-  }
+      applications,
+    },
+  });
+  
+  logger.info(`[GET_ALL_APPLICATIONS] API response sent with ${applications.length} applications`);
 };
 
 /**
@@ -38,33 +39,28 @@ const getAllCandidateApplications = async (req: Request, res: Response): Promise
  * GET /api/applications/job/:jobId
  */
 const getApplicationsByJob = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const jobId = req.params.jobId;
+  logger.info(`[GET_APPLICATIONS_BY_JOB] API request received`);
+  
+  const jobId = req.params.jobId;
 
-    if (!jobId || Array.isArray(jobId)) {
-      res.status(400).json({
-        success: false,
-        message: "Invalid Job ID",
-      });
-      return;
-    }
-
-    const applications = await applicationService.getApplicationsByJob(BigInt(jobId));
-
-    res.status(200).json({
-      success: true,
-      message: "Job applications retrieved successfully",
-      count: applications.length,
-      data: applications,
-    });
-  } catch (error) {
-    console.error("❌ Error fetching job applications:", error);
-    const message = error instanceof Error ? error.message : "Failed to fetch applications";
-    res.status(500).json({
-      success: false,
-      message,
-    });
+  if (!jobId || Array.isArray(jobId)) {
+    throw BadRequestError("Invalid Job ID");
   }
+
+  logger.info(`[GET_APPLICATIONS_BY_JOB] Fetching applications for job: ${jobId}`);
+  const applications = await applicationService.getApplicationsByJob(BigInt(jobId));
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Job applications retrieved successfully",
+    data: {
+      count: applications.length,
+      applications,
+    },
+  });
+  
+  logger.info(`[GET_APPLICATIONS_BY_JOB] API response sent with ${applications.length} applications`);
 };
 
 /**
@@ -72,33 +68,28 @@ const getApplicationsByJob = async (req: Request, res: Response): Promise<void> 
  * GET /api/applications/my-applications
  */
 const getMyCandidateApplications = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const userId = req.user?.id;
+  logger.info(`[GET_MY_APPLICATIONS] API request received`);
+  
+  const userId = req.user?.id;
 
-    if (!userId) {
-      res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
-      return;
-    }
-
-    const applications = await applicationService.getApplicationsByCandidate(BigInt(userId));
-
-    res.status(200).json({
-      success: true,
-      message: "Your applications retrieved successfully",
-      count: applications.length,
-      data: applications,
-    });
-  } catch (error) {
-    console.error("❌ Error fetching candidate applications:", error);
-    const message = error instanceof Error ? error.message : "Failed to fetch applications";
-    res.status(500).json({
-      success: false,
-      message,
-    });
+  if (!userId) {
+    throw UnauthorizedError("User not authenticated");
   }
+
+  logger.info(`[GET_MY_APPLICATIONS] Fetching applications for candidate: ${userId}`);
+  const applications = await applicationService.getApplicationsByCandidate(BigInt(userId));
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Your applications retrieved successfully",
+    data: {
+      count: applications.length,
+      applications,
+    },
+  });
+  
+  logger.info(`[GET_MY_APPLICATIONS] API response sent with ${applications.length} applications`);
 };
 
 export const applicationController = {

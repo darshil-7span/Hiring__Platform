@@ -1,4 +1,8 @@
 import { recruiterRepository, UpdateRecruiterProfileData } from "../repositories/recruiter.repository";
+import { getLogger } from "../utils/logger";
+import { NotFoundError } from "../utils/errors";
+
+const logger = getLogger("RecruiterService");
 
 /**
  * Recruiter Service (Business Logic Layer)
@@ -9,13 +13,16 @@ import { recruiterRepository, UpdateRecruiterProfileData } from "../repositories
  * Get recruiter profile
  */
 const getProfile = async (userId: bigint) => {
+  logger.info(`[GET_PROFILE] Fetching recruiter profile for user: ${userId}`);
+  
   const profile = await recruiterRepository.getRecruiterProfile(userId);
   
   if (!profile) {
-    throw new Error("Recruiter profile not found");
+    logger.warn(`[GET_PROFILE] Recruiter profile not found for user: ${userId}`);
+    throw NotFoundError("Recruiter profile not found");
   }
 
-  return {
+  const response = {
     user: {
       id: Number(profile.user.id),
       name: profile.user.name,
@@ -32,21 +39,27 @@ const getProfile = async (userId: bigint) => {
       updated_at: profile.updated_at,
     },
   };
+  
+  logger.info(`[GET_PROFILE] Successfully transformed recruiter profile for user: ${userId}`);
+  return response;
 };
 
 /**
  * Update recruiter profile
  */
 const updateProfile = async (userId: bigint, data: UpdateRecruiterProfileData) => {
+  logger.info(`[UPDATE_PROFILE] Updating recruiter profile for user: ${userId}`);
+  
   // Check if profile exists
   const exists = await recruiterRepository.profileExists(userId);
   if (!exists) {
-    throw new Error("Recruiter profile not found");
+    logger.warn(`[UPDATE_PROFILE] Recruiter profile not found for user: ${userId}`);
+    throw NotFoundError("Recruiter profile not found");
   }
 
   const profile = await recruiterRepository.updateRecruiterProfile(userId, data);
 
-  return {
+  const response = {
     user: {
       id: Number(profile.user.id),
       name: profile.user.name,
@@ -62,6 +75,9 @@ const updateProfile = async (userId: bigint, data: UpdateRecruiterProfileData) =
       updated_at: profile.updated_at,
     },
   };
+  
+  logger.info(`[UPDATE_PROFILE] Successfully updated and transformed profile for user: ${userId}`);
+  return response;
 };
 
 export const recruiterService = {

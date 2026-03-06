@@ -4,6 +4,7 @@ import morgan from "morgan";
 
 import { env } from "./config/env";
 import routes from "./routes";
+import { errorHandler } from "./middlewares/error.middleware";
 
 const app: Application = express();
 
@@ -46,21 +47,8 @@ app.use((req, res) => {
 
 /* ===============================
    GLOBAL ERROR HANDLER
+   Express 5 automatically catches async errors!
 ================================ */
-app.use(
-  (
-    err: any,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction,
-  ) => {
-    console.error(err);
-
-    res.status(err.statusCode || 500).json({
-      success: false,
-      message: err.message || "Internal Server Error",
-    });
-  },
-);
+app.use(errorHandler);
 
 export default app;

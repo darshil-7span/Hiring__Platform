@@ -1,4 +1,8 @@
 import { candidateRepository, UpdateCandidateProfileData } from "../repositories/candidate.repository";
+import { getLogger } from "../utils/logger";
+import { NotFoundError } from "../utils/errors";
+
+const logger = getLogger("CandidateService");
 
 /**
  * Candidate Service (Business Logic Layer)
@@ -9,13 +13,16 @@ import { candidateRepository, UpdateCandidateProfileData } from "../repositories
  * Get candidate profile
  */
 const getProfile = async (userId: bigint) => {
+  logger.info(`[GET_PROFILE] Fetching candidate profile for user: ${userId}`);
+  
   const profile = await candidateRepository.getCandidateProfile(userId);
   
   if (!profile) {
-    throw new Error("Candidate profile not found");
+    logger.warn(`[GET_PROFILE] Candidate profile not found for user: ${userId}`);
+    throw NotFoundError("Candidate profile not found");
   }
 
-  return {
+  const response = {
     user: {
       id: Number(profile.user.id),
       name: profile.user.name,
@@ -34,21 +41,27 @@ const getProfile = async (userId: bigint) => {
       updated_at: profile.updated_at,
     },
   };
+  
+  logger.info(`[GET_PROFILE] Successfully transformed candidate profile for user: ${userId}`);
+  return response;
 };
 
 /**
  * Update candidate profile
  */
 const updateProfile = async (userId: bigint, data: UpdateCandidateProfileData) => {
+  logger.info(`[UPDATE_PROFILE] Updating candidate profile for user: ${userId}`);
+  
   // Check if profile exists
   const exists = await candidateRepository.profileExists(userId);
   if (!exists) {
-    throw new Error("Candidate profile not found");
+    logger.warn(`[UPDATE_PROFILE] Candidate profile not found for user: ${userId}`);
+    throw NotFoundError("Candidate profile not found");
   }
 
   const profile = await candidateRepository.updateCandidateProfile(userId, data);
 
-  return {
+  const response = {
     user: {
       id: Number(profile.user.id),
       name: profile.user.name,
@@ -66,6 +79,9 @@ const updateProfile = async (userId: bigint, data: UpdateCandidateProfileData) =
       updated_at: profile.updated_at,
     },
   };
+  
+  logger.info(`[UPDATE_PROFILE] Successfully updated and transformed profile for user: ${userId}`);
+  return response;
 };
 
 export const candidateService = {
