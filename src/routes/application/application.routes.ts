@@ -1,11 +1,13 @@
 import { Router } from "express";
-import { authMiddleware } from "../../middlewares/auth.middleware";
+import { authRole } from "../../middlewares/auth-role.middleware";
 import { applicationController } from "../../controllers/application/application.controller";
 
 /**
  * APPLICATION ROUTES
  *
  * Base: /api/applications
+ * 
+ * Note: Using authRole() for combined authentication + role check
  */
 
 const router = Router();
@@ -14,23 +16,23 @@ const router = Router();
  * GET /api/applications/candidates
  * Get all candidates who applied for jobs
  * Shows complete list with candidate details, job details
- * Auth: Required
+ * Auth: Required (Recruiter role - to view all applications)
  */
 router.get(
   "/candidates",
-  authMiddleware,
-  (req, res) => applicationController.getAllCandidateApplications(req, res),
+  authRole("recruiter"),
+  applicationController.getAllCandidateApplications,
 );
 
 /**
  * GET /api/applications/job/:jobId
  * Get all applications for a specific job
- * Auth: Required
+ * Auth: Required (Recruiter role - to view job applications)
  */
 router.get(
   "/job/:jobId",
-  authMiddleware,
-  (req, res) => applicationController.getApplicationsByJob(req, res),
+  authRole("recruiter"),
+  applicationController.getApplicationsByJob,
 );
 
 /**
@@ -40,8 +42,8 @@ router.get(
  */
 router.get(
   "/my-applications",
-  authMiddleware,
-  (req, res) => applicationController.getMyCandidateApplications(req, res),
+  authRole("candidate"),
+  applicationController.getMyCandidateApplications,
 );
 
 export default router;

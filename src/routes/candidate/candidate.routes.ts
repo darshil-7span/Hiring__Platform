@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validate } from "../../middlewares/validate.middleware";
-import { authMiddleware } from "../../middlewares/auth.middleware";
+import { authRole } from "../../middlewares/auth-role.middleware";
 import { createApplicationSchema } from "../../schemas/application.schema";
 import { updateCandidateProfileSchema } from "../../schemas/candidate.schema";
 import { candidateController } from "../../controllers/candidate/candidate.controller";
@@ -11,6 +11,8 @@ const router = Router();
  * CANDIDATE ROUTES
  *
  * Base: /api/candidate
+ * 
+ * Note: Using authRole() for combined authentication + role check
  */
 
 /**
@@ -20,8 +22,8 @@ const router = Router();
  */
 router.get(
   "/profile",
-  authMiddleware,
-  (req, res) => candidateController.getProfile(req, res),
+  authRole("candidate"),
+  candidateController.getProfile,
 );
 
 /**
@@ -31,9 +33,9 @@ router.get(
  */
 router.patch(
   "/profile",
-  authMiddleware,
+  authRole("candidate"),
   validate(updateCandidateProfileSchema),
-  (req, res) => candidateController.updateProfile(req, res),
+  candidateController.updateProfile,
 );
 
 /**
@@ -44,9 +46,9 @@ router.patch(
  */
 router.post(
   "/apply",
-  authMiddleware,
+  authRole("candidate"),
   validate(createApplicationSchema),
-  (req, res) => candidateController.applyToJob(req, res),
+  candidateController.applyToJob,
 );
 
 export default router;

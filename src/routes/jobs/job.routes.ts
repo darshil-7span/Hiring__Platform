@@ -1,8 +1,7 @@
 import { Router } from "express";
 import { jobController } from "../../controllers/recruiter/recruiterpost.controller";
 import { validate } from "../../middlewares/validate.middleware";
-import { authMiddleware } from "../../middlewares/auth.middleware";
-import { roleMiddleware } from "../../middlewares/role.middleware";
+import { authRole } from "../../middlewares/auth-role.middleware";
 import {
   createJobSchema,
   updateJobSchema,
@@ -18,7 +17,10 @@ import {
  * Routes for job posting, updating, deleting, and filtering
  *
  * Pattern:
- * router.method(path, validate(schema), authMiddleware (optional), controller.method)
+ * router.method(path, validate(schema), authRole("role1", "role2"), controller.method)
+ * 
+ * Note: Using authRole() combines authentication + role check in one middleware
+ * More efficient than authMiddleware + roleMiddleware
  */
 
 const router = Router();
@@ -35,9 +37,8 @@ const router = Router();
 router.post(
   "/",
   validate(createJobSchema),
-  authMiddleware,
-  roleMiddleware("recruiter"),
-  jobController.createJob.bind(jobController),
+  authRole("recruiter"),
+  jobController.createJob,
 );
 
 /**
@@ -47,9 +48,8 @@ router.post(
  */
 router.get(
   "/my-jobs",
-  authMiddleware,
-  roleMiddleware("recruiter"),
-  jobController.getMyJobs.bind(jobController),
+  authRole("recruiter"),
+  jobController.getMyJobs,
 );
 
 /**
@@ -61,7 +61,7 @@ router.get(
 router.get(
   "/:id",
   validate(getJobByIdSchema),
-  jobController.getJobById.bind(jobController),
+  jobController.getJobById,
 );
 
 /**
@@ -74,9 +74,8 @@ router.get(
 router.patch(
   "/:id",
   validate(updateJobSchema),
-  authMiddleware,
-  roleMiddleware("recruiter"),
-  jobController.updateJob.bind(jobController),
+  authRole("recruiter"),
+  jobController.updateJob,
 );
 
 /**
@@ -88,9 +87,8 @@ router.patch(
 router.delete(
   "/:id",
   validate(deleteJobSchema),
-  authMiddleware,
-  roleMiddleware("recruiter"),
-  jobController.deleteJob.bind(jobController),
+  authRole("recruiter"),
+  jobController.deleteJob,
 );
 
 /**
@@ -105,10 +103,9 @@ router.delete(
  */
 router.get(
   "/search/jobs",
-  authMiddleware,
-  roleMiddleware("recruiter", "candidate"),
+  authRole("recruiter", "candidate"),
   validate(searchJobSchema),
-  jobController.searchJobs.bind(jobController),
+  jobController.searchJobs,
 );
 
 /**
@@ -127,10 +124,9 @@ router.get(
  */
 router.get(
   "/browse/all",
-  authMiddleware,
-  roleMiddleware("recruiter", "candidate"),
+  authRole("recruiter", "candidate"),
   validate(filterJobSchema),
-  jobController.filterJobs.bind(jobController),
+  jobController.filterJobs,
 );
 
 /**
@@ -141,9 +137,8 @@ router.get(
  */
 router.get(
   "/",
-  authMiddleware,
-  roleMiddleware("recruiter", "candidate"),
-  jobController.getAllJobs.bind(jobController),
+  authRole("recruiter", "candidate"),
+  jobController.getAllJobs,
 );
 
 export default router;

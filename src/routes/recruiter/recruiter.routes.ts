@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validate } from "../../middlewares/validate.middleware";
-import { authMiddleware } from "../../middlewares/auth.middleware";
+import { authRole } from "../../middlewares/auth-role.middleware";
 import { updateRecruiterProfileSchema } from "../../schemas/recruiter.schema";
 import { recruiterController } from "../../controllers/recruiter/recruiter.controller";
 
@@ -8,6 +8,8 @@ import { recruiterController } from "../../controllers/recruiter/recruiter.contr
  * RECRUITER ROUTES
  *
  * Base: /api/recruiter
+ * 
+ * Note: Using authRole() for combined authentication + role check
  */
 
 const router = Router();
@@ -19,8 +21,8 @@ const router = Router();
  */
 router.get(
   "/profile",
-  authMiddleware,
-  (req, res) => recruiterController.getProfile(req, res),
+  authRole("recruiter"),
+  recruiterController.getProfile,
 );
 
 /**
@@ -30,9 +32,9 @@ router.get(
  */
 router.patch(
   "/profile",
-  authMiddleware,
+  authRole("recruiter"),
   validate(updateRecruiterProfileSchema),
-  (req, res) => recruiterController.updateProfile(req, res),
+  recruiterController.updateProfile,
 );
 
 export default router;

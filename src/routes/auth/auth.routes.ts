@@ -17,7 +17,7 @@ const router = Router();
 router.post(
   "/register",
   validate(registerSchema),
-  (req, res) => authController.register(req, res)
+  authController.register,
 );
 
 /**
@@ -27,7 +27,7 @@ router.post(
 router.post(
   "/login",
   validate(loginSchema),
-  (req, res) => authController.login(req, res)
+  authController.login,
 );
 
 export default router;
