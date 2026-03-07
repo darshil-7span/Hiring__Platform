@@ -13,6 +13,12 @@ build/
 # Logs
 *.log
 npm-debug.log*
+logs/*.log
+logs/modules/*.log
+
+# But keep the logs directory structure and README
+!logs/README.md
+!logs/modules/.gitkeep
 
 # OS files
 .DS_Store

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { jobController } from "../../controllers/recruiter/recruiterpost.controller";
+import { jobController } from "../../controllers/job/job.controller";
 import { validate } from "../../middlewares/validate.middleware";
 import { authRole } from "../../middlewares/auth-role.middleware";
 import {

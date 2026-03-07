@@ -1,7 +1,7 @@
 // src/middlewares/auth-role.middleware.ts
 
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 import { env } from "../config/env";
 import { getLogger } from "../utils/logger";
 import { UnauthorizedError, ForbiddenError } from "../utils/errors";
