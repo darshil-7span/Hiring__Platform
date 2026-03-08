@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { jobRepository } from "../../repositories/job.repository";
+import { jobRepository } from "../../dao/job.dao";
 import { candidateService } from "../../services/candidate.service";
 import { getLogger } from "../../utils/logger";
 import { sendResponse } from "../../utils/apiResponse";

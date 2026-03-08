@@ -1,4 +1,4 @@
-import { authRepository } from "../../repositories/auth.repository";
+import { authRepository } from "../../dao/auth.dao";
 import { hashPassword, comparePassword } from "../../utils/password";
 import { generateToken } from "../../utils/jwt";
 import { getLogger } from "../../utils/logger";

@@ -1,4 +1,4 @@
-import { candidateRepository, UpdateCandidateProfileData } from "../repositories/candidate.repository";
+import { candidateRepository, UpdateCandidateProfileData } from "../dao/candidate.dao";
 import { getLogger } from "../utils/logger";
 import { NotFoundError } from "../utils/errors";
 

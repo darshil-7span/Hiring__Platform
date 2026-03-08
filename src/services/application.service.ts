@@ -1,4 +1,4 @@
-import { applicationRepository } from "../repositories/application.repository";
+import { applicationRepository } from "../dao/application.dao";
 import { getLogger } from "../utils/logger";
 
 const logger = getLogger("ApplicationService");

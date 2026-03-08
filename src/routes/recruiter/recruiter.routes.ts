@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { validate } from "../../middlewares/validate.middleware";
 import { authRole } from "../../middlewares/auth-role.middleware";
-import { updateRecruiterProfileSchema } from "../../schemas/recruiter.schema";
+import { updateRecruiterProfileSchema } from "../../validations/recruiter.validation";
 import { recruiterController } from "../../controllers/recruiter/recruiter.controller";
 
 /**

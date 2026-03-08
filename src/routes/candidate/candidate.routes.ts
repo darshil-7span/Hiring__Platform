@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { validate } from "../../middlewares/validate.middleware";
 import { authRole } from "../../middlewares/auth-role.middleware";
-import { createApplicationSchema } from "../../schemas/application.schema";
-import { updateCandidateProfileSchema } from "../../schemas/candidate.schema";
+import { createApplicationSchema } from "../../validations/application.validation";
+import { updateCandidateProfileSchema } from "../../validations/candidate.validation";
 import { candidateController } from "../../controllers/candidate/candidate.controller";
 
 const router = Router();

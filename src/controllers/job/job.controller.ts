@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { jobRepository } from "../../repositories/job.repository";
+import { jobRepository } from "../../dao/job.dao";
 import {
   CreateJobRequest,
   UpdateJobRequest,
   FilterJobRequest,
-} from "../../schemas/job.schema";
+} from "../../validations/job.validation";
 import { getLogger } from "../../utils/logger";
 import { sendResponse, sendError } from "../../utils/apiResponse";
 

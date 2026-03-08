@@ -9,7 +9,7 @@ import {
   getJobByIdSchema,
   filterJobSchema,
   searchJobSchema,
-} from "../../schemas/job.schema";
+} from "../../validations/job.validation";
 
 /**
  * JOB ROUTES

@@ -1,5 +1,5 @@
 import prisma from "../config/prisma";
-import { CreateJobRequest, FilterJobRequest } from "../schemas/job.schema";
+import { CreateJobRequest, FilterJobRequest } from "../validations/job.validation";
 import { getLogger } from "../utils/logger";
 
 const logger = getLogger("JobDAO");

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authController } from "../../controllers/auth/auth.controller";
 import { validate } from "../../middlewares/validate.middleware";
-import { registerSchema, loginSchema } from "../../schemas/auth.schema";
+import { registerSchema, loginSchema } from "../../validations/auth.validation";
 
 /**
  * Auth Routes Module
