@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { authService } from "../../services/auth/auth.service";
-import { BadRequestError, UnauthorizedError } from "../../utils/errors";
 import { sendResponse } from "../../utils/apiResponse";
 import { getLogger } from "../../utils/logger";
 

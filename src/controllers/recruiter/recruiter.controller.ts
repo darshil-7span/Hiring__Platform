@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { recruiterService } from "../../services/recruiter.service";
 import { getLogger } from "../../utils/logger";
 import { sendResponse } from "../../utils/apiResponse";
-import { UnauthorizedError } from "../../utils/errors";
 
 const logger = getLogger("RecruiterController");
 
@@ -18,11 +17,7 @@ const logger = getLogger("RecruiterController");
 const getProfile = async (req: Request, res: Response): Promise<void> => {
   logger.info(`[GET_PROFILE] API request received`);
   
-  const userId = req.user?.id;  // From auth middleware
-  
-  if (!userId) {
-    throw UnauthorizedError("User not authenticated");
-  }
+  const userId = req.user!.id;  // Guaranteed by authRole middleware
 
   logger.info(`[GET_PROFILE] Fetching profile for user: ${userId}`);
   const profile = await recruiterService.getProfile(BigInt(userId));
@@ -44,11 +39,7 @@ const getProfile = async (req: Request, res: Response): Promise<void> => {
 const updateProfile = async (req: Request, res: Response): Promise<void> => {
   logger.info(`[UPDATE_PROFILE] API request received`);
   
-  const userId = req.user?.id;  // From auth middleware
-  
-  if (!userId) {
-    throw UnauthorizedError("User not authenticated");
-  }
+  const userId = req.user!.id;  // Guaranteed by authRole middleware
 
   const { designation, state_id, city_id } = req.body;
 

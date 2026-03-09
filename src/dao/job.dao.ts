@@ -1,5 +1,4 @@
 import prisma from "../config/prisma";
-import { CreateJobRequest, FilterJobRequest } from "../validations/job.validation";
 import { getLogger } from "../utils/logger";
 
 const logger = getLogger("JobDAO");
@@ -12,7 +11,7 @@ const logger = getLogger("JobDAO");
 /**
  * Create a new job post
  */
-const createJob = async (recruiterId: bigint, data: CreateJobRequest["body"]) => {
+const createJob = async (recruiterId: bigint, data: any) => {
   logger.info(`Creating job post for recruiter: ${recruiterId}`);
   const job = await prisma.jobPost.create({
     data: {
@@ -35,7 +34,7 @@ const createJob = async (recruiterId: bigint, data: CreateJobRequest["body"]) =>
         : null,
       job_status: "Active",
       job_skills: {
-        create: data.skillIds.map((skillId) => ({
+        create: data.skillIds.map((skillId: number) => ({
           skill_id: skillId,
         })),
       },
@@ -208,7 +207,7 @@ const deleteJob = async (jobId: bigint) => {
 /**
  * Filter jobs by location and salary range
  */
-const filterJobs = async (filters: FilterJobRequest["query"]) => {
+const filterJobs = async (filters: any) => {
   logger.info(`Filtering jobs with criteria`, filters);
   const whereConditions: any = {
     job_status: "Active",

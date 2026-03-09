@@ -3,7 +3,7 @@ import { jobRepository } from "../../dao/job.dao";
 import { candidateService } from "../../services/candidate.service";
 import { getLogger } from "../../utils/logger";
 import { sendResponse } from "../../utils/apiResponse";
-import { UnauthorizedError, BadRequestError } from "../../utils/errors";
+import { BadRequestError } from "../../utils/errors";
 
 const logger = getLogger("CandidateController");
 
@@ -14,11 +14,7 @@ const logger = getLogger("CandidateController");
 const getProfile = async (req: Request, res: Response): Promise<void> => {
   logger.info(`[GET_PROFILE] API request received`);
   
-  const userId = req.user?.id;  // From auth middleware
-  
-  if (!userId) {
-    throw UnauthorizedError("User not authenticated");
-  }
+  const userId = req.user!.id;  // Guaranteed by authRole middleware
 
   logger.info(`[GET_PROFILE] Fetching profile for user: ${userId}`);
   const profile = await candidateService.getProfile(BigInt(userId));
@@ -40,11 +36,7 @@ const getProfile = async (req: Request, res: Response): Promise<void> => {
 const updateProfile = async (req: Request, res: Response): Promise<void> => {
   logger.info(`[UPDATE_PROFILE] API request received`);
   
-  const userId = req.user?.id;  // From auth middleware
-  
-  if (!userId) {
-    throw UnauthorizedError("User not authenticated");
-  }
+  const userId = req.user!.id;  // Guaranteed by authRole middleware
 
   const { state_id, city_id, qualification, experience_years, resume_url } = req.body;
 
@@ -76,11 +68,7 @@ const updateProfile = async (req: Request, res: Response): Promise<void> => {
 const applyToJob = async (req: Request, res: Response) => {
   logger.info(`[APPLY_TO_JOB] API request received`);
   
-  if (!req.user?.id) {
-    throw UnauthorizedError("User not authenticated");
-  }
-
-  const candidateId = BigInt(req.user.id);
+  const candidateId = BigInt(req.user!.id);  // Guaranteed by authRole middleware
   const { jobPostId } = req.body as { jobPostId: number };
 
   if (!jobPostId) {
@@ -111,4 +99,3 @@ export const candidateController = {
   updateProfile,
   applyToJob,
 };
-

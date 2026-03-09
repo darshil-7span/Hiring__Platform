@@ -2,6 +2,7 @@ import { authRepository } from "../../dao/auth.dao";
 import { hashPassword, comparePassword } from "../../utils/password";
 import { generateToken } from "../../utils/jwt";
 import { getLogger } from "../../utils/logger";
+import { RegisterInput, LoginInput, AuthResponse } from "../../types";
 
 const logger = getLogger("AuthService");
 
@@ -9,30 +10,6 @@ const logger = getLogger("AuthService");
  * Auth Service (Business Logic Layer)
  * Handles authentication business logic
  */
-
-export interface RegisterInput {
-  name: string;
-  email: string;
-  password: string;
-  phone_number?: string;
-  country_id: number;
-  role_name: "candidate" | "recruiter";
-}
-
-export interface LoginInput {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-  };
-  token: string;
-}
 
 /**
  * Register new user

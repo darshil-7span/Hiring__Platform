@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { applicationService } from "../../services/application.service";
 import { getLogger } from "../../utils/logger";
 import { sendResponse } from "../../utils/apiResponse";
-import { BadRequestError, UnauthorizedError } from "../../utils/errors";
+import { BadRequestError } from "../../utils/errors";
 
 const logger = getLogger("ApplicationController");
 
@@ -70,11 +70,7 @@ const getApplicationsByJob = async (req: Request, res: Response): Promise<void> 
 const getMyCandidateApplications = async (req: Request, res: Response): Promise<void> => {
   logger.info(`[GET_MY_APPLICATIONS] API request received`);
   
-  const userId = req.user?.id;
-
-  if (!userId) {
-    throw UnauthorizedError("User not authenticated");
-  }
+  const userId = req.user!.id;  // Guaranteed by authRole middleware
 
   logger.info(`[GET_MY_APPLICATIONS] Fetching applications for candidate: ${userId}`);
   const applications = await applicationService.getApplicationsByCandidate(BigInt(userId));

@@ -1,23 +1,9 @@
 import type { Response } from "express";
+import { ApiResponseOptions, ApiResponse } from "../types";
 
 /**
  * Standardized API Response Structure
  */
-export interface ApiResponseOptions {
-  statusCode?: number;
-  success?: boolean;
-  message?: string;
-  data?: any;
-}
-
-/**
- * API Response Format
- */
-export interface ApiResponse {
-  success: boolean;
-  message: string;
-  data: any;
-}
 
 /**
  * Centralized API Response Utility

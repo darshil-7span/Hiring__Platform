@@ -1,6 +1,7 @@
 import prisma from "../config/prisma";
 import type { User, Role } from "../../generated/prisma";
 import { getLogger } from "../utils/logger";
+import { CreateUserData } from "../types";
 
 const logger = getLogger("AuthDAO");
 
@@ -8,16 +9,6 @@ const logger = getLogger("AuthDAO");
  * Auth Repository (DAO Layer)
  * All database operations related to authentication
  */
-
-export interface CreateUserData {
-  name: string;
-  email: string;
-  password: string;
-  phone_number?: string;
-  country_id: number;
-  role_id: number;
-  is_active: boolean;
-}
 
 /**
  * Find user by email
@@ -29,19 +20,6 @@ const findUserByEmail = async (email: string): Promise<(User & { role: Role }) |
     include: { role: true },
   });
   logger.info(`User ${user ? "found" : "not found"} for email: ${email}`);
-  return user;
-};
-
-/**
- * Find user by ID
- */
-const findUserById = async (userId: number): Promise<(User & { role: Role }) | null> => {
-  logger.info(`Querying user by ID: ${userId}`);
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { role: true },
-  });
-  logger.info(`User ${user ? "found" : "not found"} for ID: ${userId}`);
   return user;
 };
 
@@ -126,7 +104,6 @@ const emailExists = async (email: string): Promise<boolean> => {
 
 export const authRepository = {
   findUserByEmail,
-  findUserById,
   createUser,
   upsertCandidateProfile,
   upsertRecruiterProfile,

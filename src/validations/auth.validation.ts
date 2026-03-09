@@ -30,24 +30,3 @@ export const loginSchema = z.object({
     password: z.string().min(1, "Password is required"),
   }),
 });
-
-// Login Response Schema (DTO)
-export const loginResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-  data: z.object({
-    user: z.object({
-      id: z.number(),
-      email: z.string(),
-      firstName: z.string(),
-      lastName: z.string(),
-      role: z.string(),
-    }),
-    token: z.string(),
-  }),
-});
-
-// TypeScript Types (Auto-generated from Zod schemas)
-export type RegisterRequest = z.infer<typeof registerSchema>;
-export type LoginRequest = z.infer<typeof loginSchema>;
-export type LoginResponse = z.infer<typeof loginResponseSchema>;

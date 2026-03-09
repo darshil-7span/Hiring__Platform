@@ -1,4 +1,5 @@
-import { recruiterRepository, UpdateRecruiterProfileData } from "../dao/recruiter.dao";
+import { recruiterRepository } from "../dao/recruiter.dao";
+import { UpdateRecruiterProfileData, RecruiterProfileResponse } from "../types";
 import { getLogger } from "../utils/logger";
 import { NotFoundError } from "../utils/errors";
 
@@ -12,7 +13,7 @@ const logger = getLogger("RecruiterService");
 /**
  * Get recruiter profile
  */
-const getProfile = async (userId: bigint) => {
+const getProfile = async (userId: bigint): Promise<RecruiterProfileResponse> => {
   logger.info(`[GET_PROFILE] Fetching recruiter profile for user: ${userId}`);
   
   const profile = await recruiterRepository.getRecruiterProfile(userId);
@@ -47,7 +48,7 @@ const getProfile = async (userId: bigint) => {
 /**
  * Update recruiter profile
  */
-const updateProfile = async (userId: bigint, data: UpdateRecruiterProfileData) => {
+const updateProfile = async (userId: bigint, data: UpdateRecruiterProfileData): Promise<RecruiterProfileResponse> => {
   logger.info(`[UPDATE_PROFILE] Updating recruiter profile for user: ${userId}`);
   
   // Check if profile exists
@@ -72,6 +73,7 @@ const updateProfile = async (userId: bigint, data: UpdateRecruiterProfileData) =
       state_name: profile.state?.name,
       city_id: profile.city_id,
       city_name: profile.city?.name,
+      created_at: profile.created_at,
       updated_at: profile.updated_at,
     },
   };

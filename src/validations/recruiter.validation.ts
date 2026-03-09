@@ -13,6 +13,3 @@ export const updateRecruiterProfileSchema = z.object({
     city_id: z.number().int().positive().optional(),
   }),
 });
-
-// TypeScript Types
-export type UpdateRecruiterProfileRequest = z.infer<typeof updateRecruiterProfileSchema>;

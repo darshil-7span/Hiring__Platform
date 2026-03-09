@@ -1,12 +1,8 @@
 import { Request, Response } from "express";
 import { jobRepository } from "../../dao/job.dao";
-import {
-  CreateJobRequest,
-  UpdateJobRequest,
-  FilterJobRequest,
-} from "../../validations/job.validation";
 import { getLogger } from "../../utils/logger";
-import { sendResponse, sendError } from "../../utils/apiResponse";
+import { sendResponse } from "../../utils/apiResponse";
+import { NotFoundError, ForbiddenError } from "../../utils/errors";
 
 const logger = getLogger("JobController");
 
@@ -34,12 +30,7 @@ declare global {
 const createJob = async (req: Request, res: Response) => {
   logger.info(`[CREATE_JOB] API request received`);
   
-  if (!req.user?.id) {
-    logger.warn(`[CREATE_JOB] Unauthorized - User ID not found`);
-    return sendError(res, "Unauthorized - User ID not found", 401);
-  }
-
-  const recruiterId = BigInt(req.user.id);
+  const recruiterId = BigInt(req.user!.id);  // Guaranteed by authRole middleware
   const jobData = req.body;
 
   // Create job in database
@@ -69,12 +60,7 @@ const createJob = async (req: Request, res: Response) => {
 const getMyJobs = async (req: Request, res: Response) => {
   logger.info(`[GET_MY_JOBS] API request received`);
   
-  if (!req.user?.id) {
-    logger.warn(`[GET_MY_JOBS] Unauthorized - User ID not found`);
-    return sendError(res, "Unauthorized - User ID not found", 401);
-  }
-
-  const recruiterId = BigInt(req.user.id);
+  const recruiterId = BigInt(req.user!.id);  // Guaranteed by authRole middleware
   const jobs = await jobRepository.getRecruiterJobs(recruiterId);
 
   logger.info(`[GET_MY_JOBS] Retrieved ${jobs.length} jobs`);
@@ -111,7 +97,7 @@ const getJobById = async (req: Request, res: Response) => {
 
   if (!job) {
     logger.warn(`[GET_JOB_BY_ID] Job not found`, { jobId: req.params.id });
-    return sendError(res, "Job not found", 404);
+    throw NotFoundError("Job not found");
   }
 
   logger.info(`[GET_JOB_BY_ID] Job retrieved successfully`, { jobId: job.id });
@@ -165,25 +151,20 @@ const getJobById = async (req: Request, res: Response) => {
 const updateJob = async (req: Request, res: Response) => {
   logger.info(`[UPDATE_JOB] API request received`, { jobId: req.params.id });
   
-  if (!req.user?.id) {
-    logger.warn(`[UPDATE_JOB] Unauthorized - User ID not found`);
-    return sendError(res, "Unauthorized - User ID not found", 401);
-  }
-
   const jobId = BigInt(req.params.id as string);
-  const recruiterId = BigInt(req.user.id);
+  const recruiterId = BigInt(req.user!.id);  // Guaranteed by authRole middleware
 
   // Verify job belongs to recruiter
   const job = await jobRepository.getJobById(jobId);
 
   if (!job) {
     logger.warn(`[UPDATE_JOB] Job not found`, { jobId: req.params.id });
-    return sendError(res, "Job not found", 404);
+    throw NotFoundError("Job not found");
   }
 
   if (job.recruiter_id !== recruiterId) {
     logger.warn(`[UPDATE_JOB] Unauthorized - Not job owner`, { jobId, recruiterId });
-    return sendError(res, "You are not authorized to update this job", 403);
+    throw ForbiddenError("You are not authorized to update this job");
   }
 
   const updateData = req.body;
@@ -214,25 +195,20 @@ const updateJob = async (req: Request, res: Response) => {
 const deleteJob = async (req: Request, res: Response) => {
   logger.info(`[DELETE_JOB] API request received`, { jobId: req.params.id });
   
-  if (!req.user?.id) {
-    logger.warn(`[DELETE_JOB] Unauthorized - User ID not found`);
-    return sendError(res, "Unauthorized - User ID not found", 401);
-  }
-
   const jobId = BigInt(req.params.id as string);
-  const recruiterId = BigInt(req.user.id);
+  const recruiterId = BigInt(req.user!.id);  // Guaranteed by authRole middleware
 
   // Verify job belongs to recruiter
   const job = await jobRepository.getJobById(jobId);
 
   if (!job) {
     logger.warn(`[DELETE_JOB] Job not found`, { jobId: req.params.id });
-    return sendError(res, "Job not found", 404);
+    throw NotFoundError("Job not found");
   }
 
   if (!job.recruiter_id || job.recruiter_id.toString() !== recruiterId.toString()) {
     logger.warn(`[DELETE_JOB] Unauthorized - Not job owner`, { jobId, recruiterId });
-    return sendError(res, "You are not authorized to delete this job", 403);
+    throw ForbiddenError("You are not authorized to delete this job");
   }
 
   await jobRepository.deleteJob(jobId);
@@ -254,11 +230,6 @@ const deleteJob = async (req: Request, res: Response) => {
 const filterJobs = async (req: Request, res: Response) => {
   logger.info(`[FILTER_JOBS] API request received`);
   
-  if (!req.user?.id) {
-    logger.warn(`[FILTER_JOBS] Unauthorized`);
-    return sendError(res, "Unauthorized - User authentication required", 401);
-  }
-
   const filters = req.query as any;
   const jobs = await jobRepository.filterJobs(filters);
   const total = await jobRepository.getTotalActiveJobs();
@@ -305,16 +276,11 @@ const filterJobs = async (req: Request, res: Response) => {
 const searchJobs = async (req: Request, res: Response) => {
   logger.info(`[SEARCH_JOBS] API request received`);
   
-  if (!req.user?.id) {
-    logger.warn(`[SEARCH_JOBS] Unauthorized`);
-    return sendError(res, "Unauthorized - User authentication required", 401);
-  }
-
   const searchTerm = req.query.q as string;
 
   if (!searchTerm || searchTerm.length < 2) {
     logger.warn(`[SEARCH_JOBS] Invalid search term`);
-    return sendError(res, "Search term must be at least 2 characters", 400);
+    throw new Error("Search term must be at least 2 characters");
   }
 
   const jobs = await jobRepository.searchJobs(searchTerm);
@@ -355,11 +321,6 @@ const searchJobs = async (req: Request, res: Response) => {
 const getAllJobs = async (req: Request, res: Response) => {
   logger.info(`[GET_ALL_JOBS] API request received`);
   
-  if (!req.user?.id) {
-    logger.warn(`[GET_ALL_JOBS] Unauthorized`);
-    return sendError(res, "Unauthorized - User authentication required", 401);
-  }
-
   const limit = parseInt((req.query.limit as string) || "10");
   const offset = parseInt((req.query.offset as string) || "0");
 

@@ -15,6 +15,3 @@ export const updateCandidateProfileSchema = z.object({
     resume_url: z.string().url("Invalid URL format").optional(),
   }),
 });
-
-// TypeScript Types
-export type UpdateCandidateProfileRequest = z.infer<typeof updateCandidateProfileSchema>;
