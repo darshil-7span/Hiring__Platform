@@ -1,0 +1,2 @@
+# This file ensures the logs/modules directory is tracked in git
+# even when it's empty (all .log files are ignored)
