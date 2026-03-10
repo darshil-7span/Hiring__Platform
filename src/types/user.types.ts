@@ -3,6 +3,8 @@
  * User-related interfaces (shared between candidate and recruiter)
  */
 
+import { Prisma } from "../../generated/prisma";
+
 // =====================
 // PROFILE TYPES
 // =====================
@@ -26,6 +28,26 @@ export interface RecruiterProfile {
   created_at: Date;
   updated_at: Date;
 }
+
+// =====================
+// DAO RELATION TYPES (Used in database queries)
+// =====================
+
+export type CandidateProfileWithRelations = Prisma.CandidateProfileGetPayload<{
+  include: {
+    user: { select: { id: true; name: true; email: true; phone_number: true } };
+    state: true;
+    city: true;
+  };
+}>;
+
+export type RecruiterProfileWithRelations = Prisma.RecruiterProfileGetPayload<{
+  include: {
+    user: { select: { id: true; name: true; email: true; phone_number: true } };
+    state: true;
+    city: true;
+  };
+}>
 
 // =====================
 // UPDATE TYPES (Input)

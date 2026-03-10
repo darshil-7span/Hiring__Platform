@@ -1,7 +1,6 @@
 import prisma from "../config/prisma";
-import type { RecruiterProfile, User, State, City } from "../../generated/prisma";
 import { getLogger } from "../utils/logger";
-import { UpdateRecruiterProfileData } from "../types";
+import { UpdateRecruiterProfileData, RecruiterProfileWithRelations } from "../types";
 
 const logger = getLogger("RecruiterDAO");
 
@@ -9,12 +8,6 @@ const logger = getLogger("RecruiterDAO");
  * Recruiter Repository (DAO Layer)
  * All database operations for recruiter profiles
  */
-
-export type RecruiterProfileWithRelations = RecruiterProfile & {
-  user: Pick<User, 'id' | 'name' | 'email' | 'phone_number'>;
-  state: State | null;
-  city: City | null;
-};
 
 /**
  * Get recruiter profile by user ID
