@@ -3,8 +3,16 @@
  * Job posting-related interfaces and types
  */
 
-// Import Prisma enums from generated client
 import type { EmploymentType, JobType, JobStatus } from "../../generated/prisma";
+
+// =====================
+// DAO TYPES (Database Layer)
+// =====================
+
+export type JobWithDetails = any;
+export type JobPostCreateData = any;
+export type JobPostUpdateData = any;
+export type JobFilterCriteria = any;
 
 // =====================
 // REQUEST TYPES
@@ -96,3 +104,99 @@ export interface JobResponse {
   created_at: Date;
   updated_at: Date;
 }
+
+// =====================
+// FORMATTER FUNCTIONS
+// =====================
+
+export const formatJobResponse = (job: any) => ({
+  jobId: job.id,
+  title: job.job_title,
+  description: job.description,
+  location: {
+    state: job.state?.name,
+    city: job.city?.name,
+  },
+  salary: {
+    min: job.salary_min?.toString(),
+    max: job.salary_max?.toString(),
+    currency: job.currency_rel?.code,
+  },
+  experience: {
+    min: job.min_exp?.toString(),
+    max: job.max_exp?.toString(),
+  },
+  employmentType: job.employment_type,
+  jobType: job.job_type,
+  benefits: job.benefits,
+  openingsCount: job.openings_count,
+  status: job.job_status,
+  skills: job.job_skills?.map((js: any) => ({
+    id: js.skill.id,
+    name: js.skill.name,
+  })) || [],
+  recruiter: job.recruiter ? {
+    id: job.recruiter.id,
+    name: job.recruiter.name,
+    email: job.recruiter.email,
+  } : null,
+  applicationsCount: job.applications?.length || 0,
+  createdAt: job.created_at,
+  updatedAt: job.updated_at,
+});
+
+export const formatJobListResponse = (job: any) => ({
+  jobId: job.id,
+  title: job.job_title,
+  location: `${job.city?.name}, ${job.state?.name}`,
+  salaryRange: {
+    min: job.salary_min?.toString(),
+    max: job.salary_max?.toString(),
+  },
+  status: job.job_status,
+  applicationsCount: job.applications?.length || 0,
+  createdAt: job.created_at,
+});
+
+export const formatJobSearchResponse = (job: any) => ({
+  jobId: job.id,
+  title: job.job_title,
+  description: (job.description?.substring(0, 150) || "") + "...",
+  recruiter: job.recruiter ? { name: job.recruiter.name } : null,
+  location: {
+    state: job.state?.name,
+    city: job.city?.name,
+  },
+  salaryRange: {
+    min: job.salary_min?.toString(),
+    max: job.salary_max?.toString(),
+  },
+  employmentType: job.employment_type,
+  jobType: job.job_type,
+  skills: job.job_skills?.map((js: any) => js.skill.name) || [],
+  openingsCount: job.openings_count,
+  createdAt: job.created_at,
+});
+
+export const formatJobCreateResponse = (job: any) => ({
+  jobId: job.id,
+  title: job.job_title,
+  description: job.description,
+  salaryRange: {
+    min: job.salary_min?.toString(),
+    max: job.salary_max?.toString(),
+  },
+  createdAt: job.created_at,
+});
+
+export const formatJobUpdateResponse = (job: any) => ({
+  jobId: job.id,
+  title: job.job_title,
+  description: job.description,
+  salaryRange: {
+    min: job.salary_min?.toString(),
+    max: job.salary_max?.toString(),
+  },
+  status: job.job_status,
+  updatedAt: job.updated_at,
+});

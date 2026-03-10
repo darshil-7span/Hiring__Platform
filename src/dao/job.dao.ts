@@ -1,123 +1,130 @@
 import prisma from "../config/prisma";
 import { getLogger } from "../utils/logger";
+import type { JobWithDetails, JobPostCreateData, JobPostUpdateData, JobFilterCriteria } from "../types";
 
 const logger = getLogger("JobDAO");
 
-/**
- * Job Repository (DAO Layer)
- * All database operations related to job posts
- */
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
 
-/**
- * Create a new job post
- */
-const createJob = async (recruiterId: bigint, data: any) => {
+const buildJobCreateData = (recruiterId: bigint, data: JobPostCreateData) => ({
+  recruiter_id: recruiterId,
+  job_title: data.title,
+  description: data.description,
+  employment_type: data.employmentType,
+  job_type: data.jobType,
+  salary_min: data.salaryMin ? BigInt(data.salaryMin) : null,
+  salary_max: data.salaryMax ? BigInt(data.salaryMax) : null,
+  currency_id: data.currencyId || 1,
+  min_exp: data.minExperience ? BigInt(data.minExperience) : null,
+  max_exp: data.maxExperience ? BigInt(data.maxExperience) : null,
+  state_id: data.stateId,
+  city_id: data.cityId,
+  benefits: data.benefits,
+  openings_count: data.openingsCount || 1,
+  application_deadline: data.applicationDeadline ? new Date(data.applicationDeadline) : null,
+  job_status: "Active" as const,
+  job_skills: {
+    create: data.skillIds.map((skillId: number) => ({
+      skill_id: skillId,
+    })),
+  },
+});
+
+const buildJobUpdateData = (data: JobPostUpdateData) => ({
+  job_title: data.title,
+  description: data.description,
+  employment_type: data.employmentType,
+  job_type: data.jobType,
+  salary_min: data.salaryMin ? BigInt(data.salaryMin) : undefined,
+  salary_max: data.salaryMax ? BigInt(data.salaryMax) : undefined,
+  currency_id: data.currencyId,
+  min_exp: data.minExperience ? BigInt(data.minExperience) : undefined,
+  max_exp: data.maxExperience ? BigInt(data.maxExperience) : undefined,
+  state_id: data.stateId,
+  city_id: data.cityId,
+  benefits: data.benefits,
+  openings_count: data.openingsCount,
+  application_deadline: data.applicationDeadline ? new Date(data.applicationDeadline) : undefined,
+  job_status: data.jobStatus,
+  job_skills: {
+    create: data.skillIds
+      ? data.skillIds.map((skillId: number) => ({
+          skill_id: skillId,
+        }))
+      : [],
+  },
+});
+
+const JOB_BASIC_INCLUDE = {
+  job_skills: {
+    include: {
+      skill: true,
+    },
+  },
+  currency_rel: true,
+  state: true,
+  city: true,
+};
+
+const JOB_DETAIL_INCLUDE = {
+  recruiter: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  },
+  job_skills: {
+    include: {
+      skill: true,
+    },
+  },
+  currency_rel: true,
+  state: true,
+  city: true,
+  applications: {
+    select: {
+      id: true,
+      candidate_id: true,
+      status: true,
+      applied_at: true,
+    },
+  },
+};
+
+// ============================================
+// DAO FUNCTIONS
+// ============================================
+
+const createJob = async (recruiterId: bigint, data: JobPostCreateData): Promise<JobWithDetails> => {
   logger.info(`Creating job post for recruiter: ${recruiterId}`);
   const job = await prisma.jobPost.create({
-    data: {
-      recruiter_id: recruiterId,
-      job_title: data.title,
-      description: data.description,
-      employment_type: data.employmentType,
-      job_type: data.jobType,
-      salary_min: data.salaryMin ? BigInt(data.salaryMin) : null,
-      salary_max: data.salaryMax ? BigInt(data.salaryMax) : null,
-      currency_id: data.currencyId || 1, // Default to INR
-      min_exp: data.minExperience ? BigInt(data.minExperience) : null,
-      max_exp: data.maxExperience ? BigInt(data.maxExperience) : null,
-      state_id: data.stateId,
-      city_id: data.cityId,
-      benefits: data.benefits,
-      openings_count: data.openingsCount || 1,
-      application_deadline: data.applicationDeadline
-        ? new Date(data.applicationDeadline)
-        : null,
-      job_status: "Active",
-      job_skills: {
-        create: data.skillIds.map((skillId: number) => ({
-          skill_id: skillId,
-        })),
-      },
-    },
-    include: {
-      job_skills: {
-        include: {
-          skill: true,
-        },
-      },
-      currency_rel: true,
-      state: true,
-      city: true,
-    },
+    data: buildJobCreateData(recruiterId, data),
+    include: JOB_BASIC_INCLUDE,
   });
   logger.info(`Job post created successfully: ${job.id}`);
   return job;
 };
 
-/**
- * Get job by ID with all details
- */
-const getJobById = async (jobId: bigint) => {
+const getJobById = async (jobId: bigint): Promise<JobWithDetails | null> => {
   logger.info(`Querying job by ID: ${jobId}`);
   const job = await prisma.jobPost.findUnique({
     where: { id: jobId },
-    include: {
-      recruiter: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-      job_skills: {
-        include: {
-          skill: true,
-        },
-      },
-      currency_rel: true,
-      state: true,
-      city: true,
-      applications: {
-        select: {
-          id: true,
-          candidate_id: true,
-          status: true,
-          applied_at: true,
-        },
-      },
-    },
+    include: JOB_DETAIL_INCLUDE,
   });
   logger.info(`Job ${job ? "found" : "not found"} for ID: ${jobId}`);
   return job;
 };
 
-/**
- * Get all jobs posted by a specific recruiter
- */
-const getRecruiterJobs = async (recruiterId: bigint) => {
+const getRecruiterJobs = async (recruiterId: bigint): Promise<JobWithDetails[]> => {
   logger.info(`Querying jobs for recruiter: ${recruiterId}`);
   const jobs = await prisma.jobPost.findMany({
     where: {
       recruiter_id: recruiterId,
     },
-    include: {
-      job_skills: {
-        include: {
-          skill: true,
-        },
-      },
-      currency_rel: true,
-      state: true,
-      city: true,
-      applications: {
-        select: {
-          id: true,
-          candidate_id: true,
-          status: true,
-          applied_at: true,
-        },
-      },
-    },
+    include: JOB_DETAIL_INCLUDE,
     orderBy: {
       created_at: "desc",
     },
@@ -126,13 +133,9 @@ const getRecruiterJobs = async (recruiterId: bigint) => {
   return jobs;
 };
 
-/**
- * Update a job post
- */
-const updateJob = async (jobId: bigint, data: any) => {
+const updateJob = async (jobId: bigint, data: JobPostUpdateData): Promise<JobWithDetails> => {
   logger.info(`Updating job: ${jobId}`);
   
-  // Disconnect old skills first
   await prisma.jobSkill.deleteMany({
     where: {
       job_id: jobId,
@@ -141,51 +144,14 @@ const updateJob = async (jobId: bigint, data: any) => {
 
   const updatedJob = await prisma.jobPost.update({
     where: { id: jobId },
-    data: {
-      job_title: data.title,
-      description: data.description,
-      employment_type: data.employmentType,
-      job_type: data.jobType,
-      salary_min: data.salaryMin ? BigInt(data.salaryMin) : undefined,
-      salary_max: data.salaryMax ? BigInt(data.salaryMax) : undefined,
-      currency_id: data.currencyId,
-      min_exp: data.minExperience ? BigInt(data.minExperience) : undefined,
-      max_exp: data.maxExperience ? BigInt(data.maxExperience) : undefined,
-      state_id: data.stateId,
-      city_id: data.cityId,
-      benefits: data.benefits,
-      openings_count: data.openingsCount,
-      application_deadline: data.applicationDeadline
-        ? new Date(data.applicationDeadline)
-        : undefined,
-      job_status: data.jobStatus,
-      job_skills: {
-        create: data.skillIds
-          ? data.skillIds.map((skillId: number) => ({
-              skill_id: skillId,
-            }))
-          : [],
-      },
-    },
-    include: {
-      job_skills: {
-        include: {
-          skill: true,
-        },
-      },
-      currency_rel: true,
-      state: true,
-      city: true,
-    },
+    data: buildJobUpdateData(data),
+    include: JOB_BASIC_INCLUDE,
   });
   logger.info(`Job updated successfully: ${jobId}`);
   return updatedJob;
 };
 
-/**
- * Delete a job post
- */
-const deleteJob = async (jobId: bigint) => {
+const deleteJob = async (jobId: bigint): Promise<JobWithDetails> => {
   logger.info(`Deleting job: ${jobId}`);
   
   // Delete related records first
@@ -204,16 +170,12 @@ const deleteJob = async (jobId: bigint) => {
   return deletedJob;
 };
 
-/**
- * Filter jobs by location and salary range
- */
-const filterJobs = async (filters: any) => {
+const filterJobs = async (filters: JobFilterCriteria): Promise<JobWithDetails[]> => {
   logger.info(`Filtering jobs with criteria`, filters);
   const whereConditions: any = {
     job_status: "Active",
   };
 
-  // Filter by location (state and/or city)
   if (filters.stateId) {
     whereConditions.state_id = parseInt(filters.stateId as string);
   }
@@ -222,7 +184,6 @@ const filterJobs = async (filters: any) => {
     whereConditions.city_id = parseInt(filters.cityId as string);
   }
 
-  // Filter by salary range
   if (filters.salaryMin || filters.salaryMax) {
     whereConditions.AND = [];
 
@@ -243,35 +204,17 @@ const filterJobs = async (filters: any) => {
     }
   }
 
-  // Filter by employment type
   if (filters.employmentType) {
     whereConditions.employment_type = filters.employmentType;
   }
 
-  // Filter by job type (Remote, OnSite, Hybrid)
   if (filters.jobType) {
     whereConditions.job_type = filters.jobType;
   }
 
   const jobs = await prisma.jobPost.findMany({
     where: whereConditions,
-    include: {
-      recruiter: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-      job_skills: {
-        include: {
-          skill: true,
-        },
-      },
-      currency_rel: true,
-      state: true,
-      city: true,
-    },
+    include: JOB_DETAIL_INCLUDE,
     orderBy: {
       created_at: "desc",
     },
@@ -296,10 +239,7 @@ const getTotalActiveJobs = async () => {
   return count;
 };
 
-/**
- * Search jobs by title and description
- */
-const searchJobs = async (searchTerm: string) => {
+const searchJobs = async (searchTerm: string): Promise<JobWithDetails[]> => {
   logger.info(`Searching jobs with term: ${searchTerm}`);
   const jobs = await prisma.jobPost.findMany({
     where: {
@@ -319,23 +259,7 @@ const searchJobs = async (searchTerm: string) => {
         },
       ],
     },
-    include: {
-      recruiter: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-      job_skills: {
-        include: {
-          skill: true,
-        },
-      },
-      currency_rel: true,
-      state: true,
-      city: true,
-    },
+    include: JOB_DETAIL_INCLUDE,
     orderBy: {
       created_at: "desc",
     },
@@ -344,10 +268,7 @@ const searchJobs = async (searchTerm: string) => {
   return jobs;
 };
 
-/**
- * Create a job application for a candidate
- */
-const applyToJob = async (candidateId: bigint, jobPostId: number) => {
+const applyToJob = async (candidateId: bigint, jobPostId: number): Promise<any> => {
   logger.info(`Candidate ${candidateId} applying to job: ${jobPostId}`);
   
   // Ensure job exists and is active

@@ -6,6 +6,14 @@
 import type { ApplicationStatus } from "../../generated/prisma";
 
 // =====================
+// DAO TYPES (Database Layer)
+// =====================
+
+export type ApplicationWithFullDetails = any;
+export type ApplicationWithCandidate = any;
+export type ApplicationWithJob = any;
+
+// =====================
 // REQUEST TYPES
 // =====================
 

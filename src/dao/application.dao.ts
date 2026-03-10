@@ -1,116 +1,135 @@
 import prisma from "../config/prisma";
 import { getLogger } from "../utils/logger";
+import type { ApplicationWithFullDetails, ApplicationWithCandidate, ApplicationWithJob } from "../types";
 
 const logger = getLogger("ApplicationDAO");
 
-/**
- * Application Repository (DAO Layer)
- * All database operations for job applications
- */
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
 
-/**
- * Get all candidate applications with full details
- */
-const getCandidateApplications = async () => {
-  logger.info(`Querying all candidate applications`);
-  const applications = await prisma.application.findMany({
-    include: {
-      // Get candidate details
-      candidate: {
+const APPLICATION_FULL_INCLUDE = {
+  candidate: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone_number: true,
+      candidate_profile: {
         select: {
-          id: true,
-          name: true,
-          email: true,
-          phone_number: true,
-          // Get candidate profile
-          candidate_profile: {
+          qualification: true,
+          experience_years: true,
+          resume_url: true,
+          state_id: true,
+          city_id: true,
+          state: {
             select: {
-              qualification: true,
-              experience_years: true,
-              resume_url: true,
-              state_id: true,
-              city_id: true,
-              state: {
-                select: {
-                  name: true,
-                },
-              },
-              city: {
-                select: {
-                  name: true,
-                },
-              },
+              name: true,
             },
           },
-        },
-      },
-      // Get job details
-      job: {
-        select: {
-          id: true,
-          job_title: true,
-          description: true,
-          employment_type: true,
-          job_type: true,
-          salary_min: true,
-          salary_max: true,
-          currency: true,
-          job_status: true,
-          // Get recruiter details
-          recruiter: {
+          city: {
             select: {
-              id: true,
               name: true,
-              email: true,
             },
           },
         },
       },
     },
+  },
+  job: {
+    select: {
+      id: true,
+      job_title: true,
+      description: true,
+      employment_type: true,
+      job_type: true,
+      salary_min: true,
+      salary_max: true,
+      currency: true,
+      job_status: true,
+      recruiter: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+  },
+};
+
+const APPLICATION_WITH_CANDIDATE_INCLUDE = {
+  candidate: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone_number: true,
+      candidate_profile: {
+        select: {
+          qualification: true,
+          experience_years: true,
+          resume_url: true,
+          state: {
+            select: {
+              name: true,
+            },
+          },
+          city: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+const APPLICATION_WITH_JOB_INCLUDE = {
+  job: {
+    select: {
+      id: true,
+      job_title: true,
+      description: true,
+      employment_type: true,
+      job_type: true,
+      salary_min: true,
+      salary_max: true,
+      currency: true,
+      recruiter: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  },
+};
+
+// ============================================
+// DAO FUNCTIONS
+// ============================================
+
+const getCandidateApplications = async (): Promise<ApplicationWithFullDetails[]> => {
+  logger.info(`Querying all candidate applications`);
+  const applications = await prisma.application.findMany({
+    include: APPLICATION_FULL_INCLUDE,
     orderBy: {
-      applied_at: 'desc', // Most recent first
+      applied_at: 'desc',
     },
   });
   logger.info(`Found ${applications.length} candidate applications`);
   return applications;
 };
 
-/**
- * Get applications for a specific job
- */
-const getApplicationsByJobId = async (jobId: bigint) => {
+const getApplicationsByJobId = async (jobId: bigint): Promise<ApplicationWithCandidate[]> => {
   logger.info(`Querying applications for job: ${jobId}`);
   const applications = await prisma.application.findMany({
     where: {
       job_id: jobId,
     },
-    include: {
-      candidate: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone_number: true,
-          candidate_profile: {
-            select: {
-              qualification: true,
-              experience_years: true,
-              resume_url: true,
-              state: {
-                select: {
-                  name: true,
-                },
-              },
-              city: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    include: APPLICATION_WITH_CANDIDATE_INCLUDE,
     orderBy: {
       applied_at: 'desc',
     },
@@ -119,35 +138,13 @@ const getApplicationsByJobId = async (jobId: bigint) => {
   return applications;
 };
 
-/**
- * Get applications by candidate ID
- */
-const getApplicationsByCandidateId = async (candidateId: bigint) => {
+const getApplicationsByCandidateId = async (candidateId: bigint): Promise<ApplicationWithJob[]> => {
   logger.info(`Querying applications for candidate: ${candidateId}`);
   const applications = await prisma.application.findMany({
     where: {
       candidate_id: candidateId,
     },
-    include: {
-      job: {
-        select: {
-          id: true,
-          job_title: true,
-          description: true,
-          employment_type: true,
-          job_type: true,
-          salary_min: true,
-          salary_max: true,
-          currency: true,
-          recruiter: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
-        },
-      },
-    },
+    include: APPLICATION_WITH_JOB_INCLUDE,
     orderBy: {
       applied_at: 'desc',
     },

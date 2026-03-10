@@ -8,12 +8,9 @@ import { errorHandler } from "./middlewares/error.middleware";
 
 const app: Application = express();
 
-/* ===============================
-   GLOBAL MIDDLEWARES
-================================ */
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
 };
@@ -22,12 +19,7 @@ if (env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-/* ===============================
-   ROUTES
-================================ */
-app.use("/api", routes);
-
-app.use("/", (req, res) => {
+app.get("/", (req, res) => {
   res.json({
     success: true,
     message: "Hiring Platform API",
@@ -35,9 +27,8 @@ app.use("/", (req, res) => {
   });
 });
 
-/* ===============================
-   404 HANDLER
-================================ */
+app.use("/api", routes);
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -45,10 +36,6 @@ app.use((req, res) => {
   });
 });
 
-/* ===============================
-   GLOBAL ERROR HANDLER
-   Express 5 automatically catches async errors!
-================================ */
 app.use(errorHandler);
 
 export default app;

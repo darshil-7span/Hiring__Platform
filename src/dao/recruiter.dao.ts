@@ -4,45 +4,11 @@ import { UpdateRecruiterProfileData, RecruiterProfileWithRelations } from "../ty
 
 const logger = getLogger("RecruiterDAO");
 
-/**
- * Recruiter Repository (DAO Layer)
- * All database operations for recruiter profiles
- */
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
 
-/**
- * Get recruiter profile by user ID
- */
-const getRecruiterProfile = async (userId: bigint): Promise<RecruiterProfileWithRelations | null> => {
-  logger.info(`Querying recruiter profile for user: ${userId}`);
-  const profile = await prisma.recruiterProfile.findUnique({
-    where: { user_id: userId },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone_number: true,
-        },
-      },
-      state: true,
-      city: true,
-    },
-  });
-  logger.info(`Recruiter profile for user ${userId}: ${profile ? 'Found' : 'Not found'}`);
-  return profile;
-};
-
-/**
- * Update recruiter profile
- */
-const updateRecruiterProfile = async (
-  userId: bigint,
-  data: UpdateRecruiterProfileData
-): Promise<RecruiterProfileWithRelations> => {
-  logger.info(`Updating recruiter profile for user: ${userId}`);
-  
-  // Build update data object - only include fields that are provided
+const buildRecruiterUpdateData = (data: UpdateRecruiterProfileData) => {
   const updateData: any = {
     updated_at: new Date(),
   };
@@ -51,30 +17,52 @@ const updateRecruiterProfile = async (
   if (data.state_id !== undefined) updateData.state_id = data.state_id;
   if (data.city_id !== undefined) updateData.city_id = data.city_id;
 
+  return updateData;
+};
+
+const RECRUITER_PROFILE_INCLUDE = {
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone_number: true,
+    },
+  },
+  state: true,
+  city: true,
+};
+
+// ============================================
+// DAO FUNCTIONS
+// ============================================
+
+const getRecruiterProfile = async (userId: bigint): Promise<RecruiterProfileWithRelations | null> => {
+  logger.info(`Querying recruiter profile for user: ${userId}`);
+  const profile = await prisma.recruiterProfile.findUnique({
+    where: { user_id: userId },
+    include: RECRUITER_PROFILE_INCLUDE,
+  });
+  logger.info(`Recruiter profile for user ${userId}: ${profile ? 'Found' : 'Not found'}`);
+  return profile;
+};
+
+const updateRecruiterProfile = async (
+  userId: bigint,
+  data: UpdateRecruiterProfileData
+): Promise<RecruiterProfileWithRelations> => {
+  logger.info(`Updating recruiter profile for user: ${userId}`);
+  
   const updatedProfile = await prisma.recruiterProfile.update({
     where: { user_id: userId },
-    data: updateData,
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone_number: true,
-        },
-      },
-      state: true,
-      city: true,
-    },
+    data: buildRecruiterUpdateData(data),
+    include: RECRUITER_PROFILE_INCLUDE,
   });
   
   logger.info(`Successfully updated recruiter profile for user: ${userId}`);
   return updatedProfile;
 };
 
-/**
- * Check if recruiter profile exists
- */
 const profileExists = async (userId: bigint): Promise<boolean> => {
   logger.info(`Checking if recruiter profile exists for user: ${userId}`);
   const profile = await prisma.recruiterProfile.findUnique({
