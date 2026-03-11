@@ -6,6 +6,9 @@
  *   import { AuthResponse, JobResponse, ApiResponse } from '@/types';
  */
 
+// Express type extensions (global)
+import './express';
+
 // Auth types
 export * from './auth.types';
 

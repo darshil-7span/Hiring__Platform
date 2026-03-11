@@ -5,18 +5,6 @@ import { sendResponse } from "../../utils/apiResponse";
 
 const logger = getLogger("JobController");
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string | number;
-        email: string;
-        role: string;
-      };
-    }
-  }
-}
-
 const createJob = async (req: Request, res: Response) => {
   logger.info(`[CREATE_JOB] Request received`);
   const recruiterId = BigInt(req.user!.id);
