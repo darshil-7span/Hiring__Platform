@@ -76,7 +76,7 @@ const upsertRecruiterProfile = async (userId: bigint) => {
 const findRoleByName = async (roleName: string): Promise<Role | null> => {
   logger.info(`Querying role by name: ${roleName}`);
   const role = await prisma.role.findFirst({
-    where: { role_name: roleName.toLowerCase() },
+    where: { name: roleName.toLowerCase() },
   });
   logger.info(`Role ${role ? "found" : "not found"}: ${roleName}`);
   return role;

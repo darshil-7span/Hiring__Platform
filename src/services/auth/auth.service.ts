@@ -46,9 +46,9 @@ const register = async (input: RegisterInput): Promise<AuthResponse> => {
   });
 
   // Create appropriate profile based on role
-  if (role.role_name === "candidate") {
+  if (role.name === "candidate") {
     await authRepository.upsertCandidateProfile(user.id);
-  } else if (role.role_name === "recruiter") {
+  } else if (role.name === "recruiter") {
     await authRepository.upsertRecruiterProfile(user.id);
   }
 
@@ -56,7 +56,7 @@ const register = async (input: RegisterInput): Promise<AuthResponse> => {
   const token = generateToken({
     userId: Number(user.id),
     email: user.email,
-    role: user.role.role_name,
+    role: user.role.name,
   });
 
   logger.info(`Registration completed`, { userId: user.id, email: user.email });
@@ -66,7 +66,7 @@ const register = async (input: RegisterInput): Promise<AuthResponse> => {
       id: Number(user.id),
       name: user.name || "",
       email: user.email,
-      role: user.role.role_name,
+      role: user.role.name,
     },
     token,
   };
@@ -102,7 +102,7 @@ const login = async (input: LoginInput): Promise<AuthResponse> => {
   const token = generateToken({
     userId: Number(user.id),
     email: user.email,
-    role: user.role.role_name,
+    role: user.role.name,
   });
 
   logger.info(`Login completed`, { userId: user.id, email: user.email });
@@ -112,7 +112,7 @@ const login = async (input: LoginInput): Promise<AuthResponse> => {
       id: Number(user.id),
       name: user.name || "",
       email: user.email,
-      role: user.role.role_name,
+      role: user.role.name,
     },
     token,
   };

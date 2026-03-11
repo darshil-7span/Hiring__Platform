@@ -53,7 +53,7 @@ enum ApplicationStatus {
 
 model Role {
   id         Int      @id @default(autoincrement())
-  role_name  String   @unique
+  name       String   @unique
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
