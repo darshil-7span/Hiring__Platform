@@ -8,6 +8,7 @@ import { getLogger } from "../utils/logger";
 import { NotFoundError } from "../utils/errors";
 
 const logger = getLogger("CandidateService");
+
 const getProfile = async (userId: bigint): Promise<CandidateProfileResponse> => {
   logger.info(`[GET_PROFILE] Fetching candidate profile for user: ${userId}`);
   
