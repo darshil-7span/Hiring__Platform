@@ -108,3 +108,45 @@ export interface RecruiterProfileResponse {
     updated_at: Date;
   };
 }
+
+// =====================
+// FORMATTER FUNCTIONS
+// =====================
+
+export const formatCandidateProfileResponse = (profile: any): CandidateProfileResponse => ({
+  user: {
+    id: Number(profile.user.id),
+    name: profile.user.name,
+    email: profile.user.email,
+    phone_number: profile.user.phone_number,
+  },
+  profile: {
+    state_id: profile.state_id,
+    state_name: profile.state?.name,
+    city_id: profile.city_id,
+    city_name: profile.city?.name,
+    qualification: profile.qualification,
+    experience_years: profile.experience_years,
+    resume_url: profile.resume_url,
+    created_at: profile.created_at,
+    updated_at: profile.updated_at,
+  },
+});
+
+export const formatRecruiterProfileResponse = (profile: any): RecruiterProfileResponse => ({
+  user: {
+    id: Number(profile.user.id),
+    name: profile.user.name,
+    email: profile.user.email,
+    phone_number: profile.user.phone_number,
+  },
+  profile: {
+    designation: profile.designation,
+    state_id: profile.state_id,
+    state_name: profile.state?.name,
+    city_id: profile.city_id,
+    city_name: profile.city?.name,
+    created_at: profile.created_at,
+    updated_at: profile.updated_at,
+  },
+});
