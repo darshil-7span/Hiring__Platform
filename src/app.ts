@@ -1,10 +1,10 @@
 import express, { Application } from "express";
 import cors from "cors";
 import morgan from "morgan";
-
 import { env } from "./config/env";
 import routes from "./routes";
 import { errorHandler } from "./middlewares/error.middleware";
+import { sendSuccess, sendError } from "./utils/apiResponse";
 
 const app: Application = express();
 
@@ -20,9 +20,7 @@ if (env.NODE_ENV === "development") {
 }
 
 app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Hiring Platform API",
+  sendSuccess(res, "Hiring Platform API", {
     version: "1.0.0",
   });
 });
@@ -30,10 +28,7 @@ app.get("/", (req, res) => {
 app.use("/api", routes);
 
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
+  sendError(res, "Route not found", 404);
 });
 
 app.use(errorHandler);
