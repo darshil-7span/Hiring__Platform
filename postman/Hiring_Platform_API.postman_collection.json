@@ -1,0 +1,748 @@
+{
+	"info": {
+		"_postman_id": "hiring-platform-api-v1",
+		"name": "Hiring Platform API",
+		"description": "Complete API collection for Hiring Platform - Authentication, Jobs, Candidates, Recruiters, and Applications",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Test@123\",\n  \"phone_number\": \"9876543210\",\n  \"country_id\": 1,\n  \"role_name\": \"candidate\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new user (candidate, recruiter, or admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.token) {",
+									"        pm.collectionVariables.set(\"auth_token\", response.data.token);",
+									"        console.log(\"Token saved:\", response.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"bob.candidate@email.com\",\n  \"password\": \"Candidate@123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login and get JWT token (auto-saves to collection variables)"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints - Register and Login"
+		},
+		{
+			"name": "Jobs",
+			"item": [
+				{
+					"name": "Create Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"job_title\": \"Senior Full Stack Developer\",\n  \"description\": \"We are looking for an experienced developer with React and Node.js\",\n  \"employment_type\": \"fulltime\",\n  \"job_type\": \"Hybrid\",\n  \"salary_min\": 1000000,\n  \"salary_max\": 1800000,\n  \"currency_id\": 1,\n  \"min_exp\": 3,\n  \"max_exp\": 7,\n  \"state_id\": 1,\n  \"city_id\": 1,\n  \"benefits\": \"Health Insurance, WFH, Learning Budget\",\n  \"openings_count\": 5,\n  \"application_deadline\": \"2026-12-31\",\n  \"job_status\": \"Active\",\n  \"skill_ids\": [1, 2, 4]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"jobs"
+							]
+						},
+						"description": "Create a new job posting (Recruiter only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Jobs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/jobs?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"jobs"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get all jobs with pagination (Public)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Job By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/jobs/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"jobs",
+								"1"
+							]
+						},
+						"description": "Get detailed information about a specific job (Public)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Jobs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/jobs/my-jobs?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"jobs",
+								"my-jobs"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get all jobs posted by the logged-in recruiter"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"job_title\": \"Senior Full Stack Developer (Updated)\",\n  \"salary_max\": 2000000,\n  \"openings_count\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/jobs/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"jobs",
+								"1"
+							]
+						},
+						"description": "Update job details (Recruiter only - own jobs)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/jobs/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"jobs",
+								"1"
+							]
+						},
+						"description": "Delete a job posting (Recruiter only - own jobs)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Jobs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/jobs/search?q=developer&page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"jobs",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "developer"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Search jobs by title or description (Public)"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter Jobs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/jobs/filter?employment_type=fulltime&job_type=Hybrid&min_salary=800000&max_salary=1500000&state_id=1&city_id=1&page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"jobs",
+								"filter"
+							],
+							"query": [
+								{
+									"key": "employment_type",
+									"value": "fulltime",
+									"description": "fulltime, parttime, internship"
+								},
+								{
+									"key": "job_type",
+									"value": "Hybrid",
+									"description": "Remote, OnSite, Hybrid"
+								},
+								{
+									"key": "min_salary",
+									"value": "800000"
+								},
+								{
+									"key": "max_salary",
+									"value": "1500000"
+								},
+								{
+									"key": "state_id",
+									"value": "1"
+								},
+								{
+									"key": "city_id",
+									"value": "1"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Filter jobs by multiple criteria (Public)"
+					},
+					"response": []
+				}
+			],
+			"description": "Job management endpoints - CRUD operations, search, and filter"
+		},
+		{
+			"name": "Candidate",
+			"item": [
+				{
+					"name": "Get Candidate Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/candidate/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"candidate",
+								"profile"
+							]
+						},
+						"description": "Get logged-in candidate's profile (Candidate only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Candidate Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Bob Candidate Updated\",\n  \"phone_number\": \"9999888877\",\n  \"state_id\": 1,\n  \"city_id\": 1,\n  \"qualification\": \"M.Tech in Computer Science\",\n  \"experience_years\": 5,\n  \"resume_url\": \"https://example.com/resume-updated.pdf\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/candidate/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"candidate",
+								"profile"
+							]
+						},
+						"description": "Update candidate profile information (Candidate only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Apply to Job",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"job_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/candidate/apply",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"candidate",
+								"apply"
+							]
+						},
+						"description": "Apply to a job posting (Candidate only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Candidate profile and job application endpoints"
+		},
+		{
+			"name": "Recruiter",
+			"item": [
+				{
+					"name": "Get Recruiter Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/recruiter/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"recruiter",
+								"profile"
+							]
+						},
+						"description": "Get logged-in recruiter's profile (Recruiter only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Recruiter Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Alice Recruiter Updated\",\n  \"phone_number\": \"9876543210\",\n  \"designation\": \"Senior HR Manager\",\n  \"state_id\": 1,\n  \"city_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/recruiter/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"recruiter",
+								"profile"
+							]
+						},
+						"description": "Update recruiter profile information (Recruiter only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Recruiter profile management endpoints"
+		},
+		{
+			"name": "Applications",
+			"item": [
+				{
+					"name": "Get All Candidate Applications (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/applications/candidates?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"applications",
+								"candidates"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get all applications across all jobs (Admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Applications for Job (Recruiter)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/applications/job/1?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"applications",
+								"job",
+								"1"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get all applications for a specific job (Recruiter - own jobs only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Applications (Candidate)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/applications/my-applications?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"applications",
+								"my-applications"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get all applications submitted by logged-in candidate"
+					},
+					"response": []
+				}
+			],
+			"description": "Application management endpoints for candidates, recruiters, and admins"
+		},
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"health"
+					]
+				},
+				"description": "Check if the API server is running"
+			},
+			"response": []
+		},
+		{
+			"name": "Root Endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						""
+					]
+				},
+				"description": "API root endpoint with basic info"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

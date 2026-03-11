@@ -6,8 +6,8 @@
  *   import { AuthResponse, JobResponse, ApiResponse } from '@/types';
  */
 
-// Express type extensions (global)
-import './express';
+// Express type extensions (global) - loaded via tsconfig include
+// No need to import .d.ts files - they're automatically included
 
 // Auth types
 export * from './auth.types';
