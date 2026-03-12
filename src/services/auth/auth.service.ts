@@ -22,7 +22,7 @@ const register = async (input: RegisterInput): Promise<AuthResponse> => {
   const emailExists = await authRepository.emailExists(input.email);
   if (emailExists) {
     logger.warn(`Registration failed: Email already exists - ${input.email}`);
-    throw ConflictError("Email already registered");
+    throw ConflictError("User is already exists");
   }
 
   // Find role
