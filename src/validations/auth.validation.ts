@@ -7,8 +7,12 @@ import { z } from "zod";
 // Register Request Schema (DTO)
 export const registerSchema = z.object({
   body: z.object({
-    name: z.string().min(1, "Name is required"),
-    email: z.string().email("Invalid email format"),
+    name: z.string().min(1, "Name is required").trim(),
+    email: z
+      .string()
+      .email("Invalid email format")
+      .toLowerCase() // Normalize email to lowercase (industry standard)
+      .trim(),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -26,7 +30,11 @@ export const registerSchema = z.object({
 // Login Request Schema (DTO)
 export const loginSchema = z.object({
   body: z.object({
-    email: z.string().email("Invalid email format"),
+    email: z
+      .string()
+      .email("Invalid email format")
+      .toLowerCase() // Normalize email to lowercase (industry standard)
+      .trim(),
     password: z.string().min(1, "Password is required"),
   }),
 });

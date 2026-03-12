@@ -3,6 +3,7 @@ import { hashPassword, comparePassword } from "../../utils/password";
 import { generateToken } from "../../utils/jwt";
 import { getLogger } from "../../utils/logger";
 import { RegisterInput, LoginInput, AuthResponse } from "../../types";
+import { ConflictError, NotFoundError, UnauthorizedError, ForbiddenError } from "../../utils/errors";
 
 const logger = getLogger("AuthService");
 
@@ -21,14 +22,14 @@ const register = async (input: RegisterInput): Promise<AuthResponse> => {
   const emailExists = await authRepository.emailExists(input.email);
   if (emailExists) {
     logger.warn(`Registration failed: Email already exists - ${input.email}`);
-    throw new Error("Email already registered");
+    throw ConflictError("Email already registered");
   }
 
   // Find role
   const role = await authRepository.findRoleByName(input.role_name);
   if (!role) {
     logger.error(`Role not found: ${input.role_name}`);
-    throw new Error(`Role '${input.role_name}' not found`);
+    throw NotFoundError(`Role '${input.role_name}' not found`);
   }
 
   // Hash password
@@ -82,20 +83,20 @@ const login = async (input: LoginInput): Promise<AuthResponse> => {
   const user = await authRepository.findUserByEmail(input.email);
   if (!user) {
     logger.warn(`Login failed: User not found - ${input.email}`);
-    throw new Error("Invalid credentials");
+    throw UnauthorizedError("Invalid credentials");
   }
 
   // Check if user is active
   if (!user.is_active) {
     logger.warn(`Login failed: Account inactive - ${input.email}`);
-    throw new Error("Account is inactive");
+    throw ForbiddenError("Account is inactive");
   }
 
   // Compare password
   const isPasswordValid = await comparePassword(input.password, user.password || "");
   if (!isPasswordValid) {
     logger.warn(`Login failed: Invalid password - ${input.email}`);
-    throw new Error("Invalid credentials");
+    throw UnauthorizedError("Invalid credentials");
   }
 
   // Generate JWT token

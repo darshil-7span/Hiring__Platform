@@ -12,8 +12,11 @@ const logger = getLogger("ErrorMiddleware");
  * 
  * This middleware:
  * 1. Receives all errors from the app
- * 2. Logs the error with full details
- * 3. Uses sendError utility for consistent response format
+ * 2. Logs the error with full details (stack trace stays in logs only)
+ * 3. Returns clean, client-friendly error messages
+ * 4. Controlled by SHOW_STACK_TRACE environment variable
+ * 
+ * SECURITY: Set SHOW_STACK_TRACE=false in production
  */
 export const errorHandler = (
   err: any,
@@ -25,20 +28,28 @@ export const errorHandler = (
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal server error";
 
-  // Log error details
+  // Log error details internally (ALWAYS logged, NEVER exposed to client)
   logger.error(`[ERROR] ${message}`, {
     path: req.path,
     method: req.method,
     statusCode,
-    stack: err.stack,
+    stack: err.stack, // Logged internally for debugging
     body: req.body,
+    user: req.user?.id,
   });
 
-  // Use sendError utility for consistent error response format
-  // This ensures error responses match the standard API response structure
-  const errorData = process.env.NODE_ENV === "development" 
-    ? { stack: err.stack } 
-    : null;
+  // Check environment variable to determine if stack traces should be shown
+  // SHOW_STACK_TRACE=true  -> Show stack trace (debugging)
+  // SHOW_STACK_TRACE=false -> Hide stack trace (production)
+  const showStackTrace = process.env.SHOW_STACK_TRACE === "true";
+
+  const errorData = showStackTrace 
+    ? { 
+        stack: err.stack,
+        path: req.path,
+        timestamp: new Date().toISOString(),
+      } 
+    : undefined;
 
   sendError(res, message, statusCode, errorData);
 };
